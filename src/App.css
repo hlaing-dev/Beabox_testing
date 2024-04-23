@@ -224,8 +224,15 @@ section:target h1 {
 
 .custom-card {
   width: 200pt;
+  min-height: 115px;
     background: #4e4e4e;
-    padding: 20px;
+    padding: 10px;
     border-radius: 5px;
     border: 1px solid #8a8a35;
+}
+
+.clearfix::after {
+  content: "";
+  clear: both;
+  display: table;
 }

@@ -30,7 +30,7 @@ export default function Home() {
       },
   ];
   return (
-    <div style={{backgroundColor: 'green'}}>
+    <>
       <div className="main-content">
         <Dashboard />
 
@@ -147,6 +147,6 @@ export default function Home() {
           </div>
         </Dialog>
       </Transition.Root>
-    </div>
+    </>
   );
 }

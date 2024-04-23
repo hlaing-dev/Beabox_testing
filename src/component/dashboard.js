@@ -82,37 +82,45 @@ const Dashboard = () => {
   ];
   return (
     <>
-  {cardList.map((cl) => (
-    <div
-      key={cl.title}
-      className="text-base font-semibold leading-6 text-white-900 my-5"
-    >
-      {cl.title}
+{cardList.map((cl) => (
+  <div
+    key={cl.title}
+    className="text-base font-semibold leading-6 text-white-900 my-5"
+  >
+    {cl.title}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {cl.cards.map((card, index) => (
-          <div
-            key={index}
-            className="flex min-w-0 gap-x-4 items-center custom-card mr-5 mt-3"
-          >
-            <img
-              className="h-12 w-12 flex-none rounded-full bg-gray-50"
-              src={card.imageUrl}
-              alt=""
-            />
-            <div className="min-w-0">
-              <p className="text-sm font-semibold leading-6 text-white-900">
-                {card.name}
-              </p>
-              <p className="text-sm font-semibold leading-6 text-white-300">
-                {card.text}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
+    <div
+      className="clearfix"
+      style={{ justifyContent: "space-between" }}
+    >
+      {cl.cards.map((card, index) => (
+         <div
+         key={index}
+         className="flex items-center custom-card mb-4 float-left mt-3"
+         style={{ flex: "1 1 0", minWidth: "0", marginRight: "15px" }}
+       >
+         <img
+           className="h-12 w-12 flex-none rounded-full bg-gray-50"
+           src={card.imageUrl}
+           alt=""
+         />
+         <div className="min-w-0 ml-3">
+           <p className="text-sm font-semibold leading-6 text-white-900">
+             {card.name}
+           </p>
+           <p className="text-xs font-semibold leading-6">
+             {card.text}
+           </p>
+         </div>
+         </div>
+      ))}
     </div>
-  ))}
+  </div>
+))}
+
+
+
+
 </>
 
   );
