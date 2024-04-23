@@ -67,31 +67,19 @@ export default function Home() {
                   leaveTo="translate-x-full"
                 >
                   <Dialog.Panel className="pointer-events-auto relative w-screen max-w-md">
-                    <Transition.Child
-                      as={Fragment}
-                      enter="ease-in-out duration-500"
-                      enterFrom="opacity-0"
-                      enterTo="opacity-100"
-                      leave="ease-in-out duration-500"
-                      leaveFrom="opacity-100"
-                      leaveTo="opacity-0"
-                    >
-                      <div className="absolute left-0 top-0 -ml-8 flex pr-2 pt-4 sm:-ml-10 sm:pr-4">
+                    <div className="flex h-full flex-col overflow-y-scroll py-6 shadow-xl chat-history">
+                      <div className="px-4 sm:px-6">
+                        <Dialog.Title className="text-base font-semibold leading-6 text-white-900">
+                          ColaBot
                         <button
                           type="button"
-                          className="relative rounded-md text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-white"
+                          className="relative rounded-md text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-white float-right"
                           onClick={() => setOpen(false)}
                         >
                           <span className="absolute -inset-2.5" />
                           <span className="sr-only">Close panel</span>
                           <XMarkIcon className="h-6 w-6" aria-hidden="true" />
                         </button>
-                      </div>
-                    </Transition.Child>
-                    <div className="flex h-full flex-col overflow-y-scroll py-6 shadow-xl chat-history">
-                      <div className="px-4 sm:px-6">
-                        <Dialog.Title className="text-base font-semibold leading-6 text-white-900">
-                          ColaBot
                         </Dialog.Title>
                         <p>Impact Holding Company</p>
                       </div>
