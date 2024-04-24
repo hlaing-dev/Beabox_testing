@@ -21,7 +21,7 @@
 .main-content{
   height: 100vh;
   background: #212121;
-  padding: 5px 70px;
+  padding: 70px 70px;
   color: white;
 }
 
@@ -72,7 +72,7 @@
   font-family: Montserrat, sans-serif;
 }
 
-nav a {
+.nav, nav a {
     font-size: 25px;
     color: #fff;
     text-decoration: none;
@@ -84,7 +84,9 @@ nav a {
   color: var(--primary-color);
 }
 
-nav {
+nav, .nav {
+    margin-top: 64px;
+    font-size: 28px;
     position: fixed;
     left: 0;
     z-index: 50;
@@ -161,6 +163,14 @@ section:target h1 {
   }
 }
 
+.top-nav {
+  background: rgb(23, 23, 23);
+    padding: 6px 7px;
+    position: fixed;
+    border-left: 1px solid;
+    box-shadow: 7px 8px 22px 15px #262626;
+}
+
 #hamburger {
   z-index: 10;
   position: fixed;
@@ -168,7 +178,7 @@ section:target h1 {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  top: 30px;
+  top: 4px;
   right: 8px;
   background-color: #4a463c;
   width: 56px;
@@ -192,7 +202,13 @@ section:target h1 {
   }
 }
 
-.nav {
+.bottom-menu {
+  height: auto;
+  position: absolute;
+  bottom: 2px;
+  margin-left: 6px;
+}
+/* .nav {
   z-index: 9;
   position: fixed;
   bottom: 10.5%;
@@ -210,7 +226,7 @@ section:target h1 {
   box-shadow: 3px 3px 10px 0px rgba(0,0,0,0.48);
   cursor: pointer;
   transition: all 0.3s ease-in;
-}
+} */
 
 .material-icons {
   font-size: 24px;
