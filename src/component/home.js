@@ -7,7 +7,7 @@ import { faCode } from "@fortawesome/free-solid-svg-icons";
 import Dashboard from "./dashboard";
 
 export default function Home() {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const bots = [
     {
       name: "ColaBot",
