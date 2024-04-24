@@ -178,9 +178,9 @@ section:target h1 {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  top: 4px;
-  right: 8px;
-  background-color: #4a463c;
+  bottom: 50px;
+  right: 50px;
+  background-color: #b38201;
   width: 56px;
   height: 56px;
   border-radius: 50%;
