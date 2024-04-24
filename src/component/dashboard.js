@@ -66,6 +66,54 @@ const Dashboard = () => {
           imageUrl:
             "https://www.creativefabrica.com/wp-content/uploads/2021/07/05/Chatbot-Logo-Modern-bot-logo-Graphics-14298242-1.jpg",
         },
+        {
+          name: "New income bot",
+          text: "This is the customer supporter bot for new system",
+          imageUrl:
+            "https://www.creativefabrica.com/wp-content/uploads/2021/07/05/Chatbot-Logo-Modern-bot-logo-Graphics-14298242-1.jpg",
+        },
+        {
+          name: "New outcome bot",
+          text: "This is the customer supporter bot for new system",
+          imageUrl:
+            "https://www.creativefabrica.com/wp-content/uploads/2021/07/05/Chatbot-Logo-Modern-bot-logo-Graphics-14298242-1.jpg",
+        },
+        {
+          name: "New income bot",
+          text: "This is the customer supporter bot for new system",
+          imageUrl:
+            "https://www.creativefabrica.com/wp-content/uploads/2021/07/05/Chatbot-Logo-Modern-bot-logo-Graphics-14298242-1.jpg",
+        },
+        {
+          name: "New outcome bot",
+          text: "This is the customer supporter bot for new system",
+          imageUrl:
+            "https://www.creativefabrica.com/wp-content/uploads/2021/07/05/Chatbot-Logo-Modern-bot-logo-Graphics-14298242-1.jpg",
+        },
+        {
+          name: "New income bot",
+          text: "This is the customer supporter bot for new system",
+          imageUrl:
+            "https://www.creativefabrica.com/wp-content/uploads/2021/07/05/Chatbot-Logo-Modern-bot-logo-Graphics-14298242-1.jpg",
+        },
+        {
+          name: "New outcome bot",
+          text: "This is the customer supporter bot for new system",
+          imageUrl:
+            "https://www.creativefabrica.com/wp-content/uploads/2021/07/05/Chatbot-Logo-Modern-bot-logo-Graphics-14298242-1.jpg",
+        },
+        {
+          name: "New income bot",
+          text: "This is the customer supporter bot for new system",
+          imageUrl:
+            "https://www.creativefabrica.com/wp-content/uploads/2021/07/05/Chatbot-Logo-Modern-bot-logo-Graphics-14298242-1.jpg",
+        },
+        {
+          name: "New outcome bot",
+          text: "This is the customer supporter bot for new system",
+          imageUrl:
+            "https://www.creativefabrica.com/wp-content/uploads/2021/07/05/Chatbot-Logo-Modern-bot-logo-Graphics-14298242-1.jpg",
+        },
       ],
     },
     {
