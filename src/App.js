@@ -65,13 +65,13 @@ function App() {
       </div>
 
       <div class="container">
-        <section id="first">
+        {/* <section id="first">
           <h1>Chat</h1>
         </section>
 
         <section id="notfound">
           <h1>Hello</h1>
-        </section>
+        </section> */}
         <Home />
       </div>
     </>
