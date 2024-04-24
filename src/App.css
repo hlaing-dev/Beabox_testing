@@ -206,7 +206,8 @@ section:target h1 {
   height: auto;
   position: absolute;
   bottom: 2px;
-  margin-left: 6px;
+  margin-left: 7px;
+  position: fixed;
 }
 /* .nav {
   z-index: 9;
