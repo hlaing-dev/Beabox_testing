@@ -1,72 +1,78 @@
 import React, { useEffect, useState } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import "swiper/css/pagination";
 import "./ss.css";
-
-import { Autoplay, Pagination } from "swiper/modules";
+import "react-responsive-carousel/lib/styles/carousel.min.css"; 
+import { Carousel } from "react-responsive-carousel";
 import { useGetExploreHeaderQuery } from "@/store/api/explore/exploreApi";
 
 const Banner: React.FC = () => {
   const [ad, setAd] = useState([]);
-  const [activeIndex, setActiveIndex] = useState(0); // Track the active slide index
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const { data, isLoading } = useGetExploreHeaderQuery("");
 
   useEffect(() => {
     if (data?.data) {
       const cur = data?.data?.ads?.carousel;
-      setAd(cur);
+      setAd(cur || []);
     }
   }, [data]);
+
+  const handleOnChange = (index: number) => {
+    setSelectedIndex(index);
+  };
 
   return (
     <div className="py-[20px] relative">
       {isLoading ? (
         <div className="w-full h-[194px] bg-white/20 rounded-md animate-pulse"></div>
       ) : (
-        <Swiper
-          modules={[Autoplay, Pagination]}
-          pagination={{
-            el: ".custom-pagination",
-            clickable: true,
-          }}
-          autoplay={{
-            delay: 3000,
-            disableOnInteraction: false,
-          }}
-          spaceBetween={"1px"}
-          slidesPerView={1}
-          centeredSlides={true}
-          loop={true}
-          onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)} // Use realIndex to handle loop
-        >
-          {ad.map((cc: any, index: number) => (
-            <SwiperSlide key={cc.id}>
-              <a
-                className="flex justify-center items-center"
-                href={cc.url}
-                target="_blank"
-              >
-                <img
-                  className={`rounded-md transition-all duration-300
-                   ${
-                    activeIndex === index
-                      ? "w-screen h-[162px]" // Active slide size
-                      : "w-screen h-[162px]" // Non-active slide size
-                  }
-                  `}
-                  src={cc.image}
-                  alt="Slide"
-                />
-              </a>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      )}
-
-      {/* Custom Pagination */}
-      {!isLoading && (
-        <div className="custom-pagination mt-4 flex justify-center"></div>
+        ad.length > 0 && ( // Only render when ads are available
+          <>
+            <Carousel
+              showThumbs={false}
+              showArrows={false}
+              showStatus={false}
+              showIndicators={false}
+              autoPlay={true}
+              infiniteLoop={true}
+              centerMode
+              centerSlidePercentage={90}
+              selectedItem={selectedIndex}
+              onChange={handleOnChange}
+              interval={3000} // Set autoplay interval
+            >
+              {ad.map((cc: any, index: number) => (
+                <div
+                  key={index}
+                  className={`justify-center h-[172px] items-center px-[8px] flex flex-col relative bg-black`}
+                >
+                  <img
+                    className={`rounded-md transition-all duration-300 ${
+                      selectedIndex === index
+                        ? "w-[332px] h-[162px]" // Active slide size
+                        : "w-[290px] h-[148px]" // Non-active slide size
+                    }`}
+                    src={cc.image}
+                    alt={`Slide ${index + 1}`}
+                  />
+                </div>
+              ))}
+            </Carousel>
+            {/* Custom Dots */}
+            <ul className="flex items-center gap-[10px] w-screen justify-center mt-2 absolute bottom-0">
+              {ad.map((_, dotIndex) => (
+                <li
+                  key={dotIndex}
+                  className={`w-[6px] h-[6px] rounded-full ${
+                    selectedIndex === dotIndex ? "bg-white" : "bg-[#888]"
+                  }`}
+                  onClick={() => handleOnChange(dotIndex)}
+                  role="button"
+                  tabIndex={0}
+                ></li>
+              ))}
+            </ul>
+          </>
+        )
       )}
     </div>
   );
