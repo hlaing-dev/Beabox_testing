@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 // import sp from "../../../assets/explore/sp.png";
 import { FaHeart } from "react-icons/fa";
 import { useGetExploreListQuery } from "@/store/api/explore/exploreApi";
@@ -7,20 +7,31 @@ import { Person } from "@/assets/profile";
 import Loader from "../../../page/home/vod_loader.gif";
 import { useDispatch, useSelector } from "react-redux";
 import { setDetails } from "@/store/slices/exploreSlice";
-import { useNavigate } from "react-router-dom";
+import { replace, useNavigate, useSearchParams } from "react-router-dom";
 import { paths } from "@/routes/paths";
 
 interface LatestPorp {
-  // setshow: any;
+
 }
 
 const Latest: React.FC<LatestPorp> = ({}) => {
+  // const [searchParams, setSearchParams] = useSearchParams();
   const dispatch = useDispatch();
   const [waterfall, setWaterFall] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
   const { data, isLoading } = useGetExploreListQuery({ id: 3, page });
   const navigate = useNavigate();
+  const scrollPositionRef = useRef<number>(0);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.scrollTop = scrollPositionRef.current;
+    }
+  }, []);
+
 
   useEffect(() => {
     if (data?.data) {
@@ -46,15 +57,17 @@ const Latest: React.FC<LatestPorp> = ({}) => {
   };
 
   const showDetailsVod = (file: any) => {
+    scrollPositionRef.current = contentRef.current?.scrollTop || 0; 
     dispatch(setDetails(file));
-    navigate(paths.vod_details);
+    navigate("/vod_details",{replace : true});
   };
   return (
-    <div className=" flex w-full justify-around items-cente">
+    <div className=" flex w-full justify-center">
       <div
-        className="columns-2 gap-1 relative"
+        className="columns-2 gap-1 relative "
+        ref={contentRef}
         style={{
-          columnGap: "10px",
+          columnGap: "20px",
         }}
       >
         {isLoading ? (
@@ -68,8 +81,8 @@ const Latest: React.FC<LatestPorp> = ({}) => {
           <>
             {waterfall?.map((card: any, index: number) => (
               <div
-                key={card.id}
-                className="rounded-lg shadow-lg h-fit mb-4 w-[172px] relative bg-whit"
+                key={index}
+                className="rounded-lg shadow-lg h-fit mb-4 w-[172px] relative"
                 style={{ breakInside: "avoid" }}
               >
                 <img
