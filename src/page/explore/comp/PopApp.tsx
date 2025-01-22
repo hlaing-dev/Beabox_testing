@@ -24,6 +24,8 @@ const Poppizza: React.FC<PoppizzaProps> = ({}) => {
   }, [ad]);
 
   return (
+    <>
+    {ad?.length > 0 &&
     <div className=" pt-[20px]">
       <h1 className=" text-white text-[14px] font-[500] leading-[20px] pb-[12px]">
         {data?.data?.ads?.application.title
@@ -65,6 +67,8 @@ const Poppizza: React.FC<PoppizzaProps> = ({}) => {
         </div>
       )}
     </div>
+}
+    </>
   );
 };
 

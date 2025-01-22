@@ -22,7 +22,7 @@ const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
   }, [data, hd]);
 
   return (
-    <div className="bg-black z-[99] py-[5px] sticky top-0 w-screen">
+    <div className="bg-black z-[99] py-[5px] sticky top-0 w-screen pl-2">
       {isLoading ? (
         <div className=" w-[330px] bg-white/20 h-[50px] animate-pulse"></div>
       ) : (

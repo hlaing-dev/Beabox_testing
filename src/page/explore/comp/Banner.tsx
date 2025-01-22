@@ -21,7 +21,7 @@ const Banner: React.FC = () => {
   };
 
   return (
-    <div className="py-[20px] relative">
+    <div className="py-[20px] relative w-full max-w-[800px] mx-auto">
       {isLoading ? (
         <div className="w-full h-[194px] bg-white/20 rounded-md animate-pulse"></div>
       ) : (
@@ -48,8 +48,8 @@ const Banner: React.FC = () => {
                   <img
                     className={`rounded-md transition-all duration-300 ${
                       selectedIndex === index
-                        ? "w-[332px] h-[162px]" // Active slide size
-                        : "w-[290px] h-[148px]" // Non-active slide size
+                        ? "w-[332px] h-[180px]" // Active slide size
+                        : "w-[290px] h-[160px]" // Non-active slide size
                     }`}
                     src={cc.image}
                     alt={`Slide ${index + 1}`}
