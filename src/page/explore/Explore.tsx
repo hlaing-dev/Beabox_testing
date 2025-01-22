@@ -17,27 +17,26 @@ import { setExpHeader } from "@/store/slices/exploreSlice";
 const Explore = () => {
   const [activeTab, setActiveTab] = useState("Recommend");
   const { exp_header } = useSelector((state: any) => state.explore);
-  console.log(exp_header)
+  console.log(exp_header);
   const [searchParams, setSearchParams] = useSearchParams();
   const [tabs, setTabs] = useState(["Recommend", "Latest", "Hollywood"]);
+  const [dyId, setDyId] = useState<any>("");
   const { data, isLoading } = useGetExploreHeaderQuery("");
   const swiperRef = useRef<any>(null);
   const [show, setshow] = useState<boolean>(false);
   const dispatch = useDispatch();
 
-  // useEffect(() => {
-  //   const queryTab = searchParams.get("query");
-  //   if (queryTab && tabs.includes(queryTab)) {
-  //     setActiveTab(queryTab);
-  //   }
-  // }, [searchParams, tabs]);
+ 
 
   useEffect(() => {
     if (data?.data?.tabs) {
-      const tt = data?.data?.tabs.map((t: any) => t.title);
-      setTabs([...tt, "Hollywood"]);
+      const tt = data?.data?.tabs.map((t: any) => t.name);
+      const ii = data?.data?.tabs.map((t: any) => t.id);
+      setTabs([...tt, tabs]);
+      setDyId([...ii, dyId]);
     }
   }, [data]);
+  console.log(dyId);
 
   useEffect(() => {
     if (swiperRef.current) {
@@ -54,12 +53,13 @@ const Explore = () => {
     dispatch(setExpHeader(newActiveTab));
     // setSearchParams({ query: tabToQuery(newActiveTab) }); // Convert tab to query value
   };
+  console.log(data?.data?.tabs);
 
   return (
     <>
       {/* {show && <VodDetails  />} */}
 
-      <div className="flex justify-center items-center w-screen overflow-clip	">
+      <div className="flex justify-center items-center w-screen overflow-clip">
         <div className="explore_sec w-screen xl:w-[800px] flex flex-col justify-center items-cente px-[10px] pb-[100px] mt-14">
           <Banner />
           <PopApp />
@@ -75,30 +75,19 @@ const Explore = () => {
               spaceBetween={1}
               // loop={true}
             >
-              <SwiperSlide>
-                {exp_header === "Recommend" && (
-                  <div className=" h-screen">
-                    <Recommand title="Chinese Drama" />
-                    <Recommand title="Latest Drama" />
-                  </div>
-                )}
-              </SwiperSlide>
-              <SwiperSlide>
-                {exp_header === "Latest" && (
-                  <div className=" h-screen">
-                    {/* <Latest /> */}
-                    <Recommand title="Chinese Drama" />
-                    <Recommand title="Latest Drama" />
-                  </div>
-                )}
-              </SwiperSlide>
-              <SwiperSlide>
-                {exp_header === "Hollywood" && (
-                  <div className=" min-h-screen">
-                    <Latest />
-                  </div>
-                )}
-              </SwiperSlide>
+              {data?.data?.tabs.map((gg: any) => (
+                <SwiperSlide>
+                  {exp_header === gg.name && (
+                    <div className=" min-h-screen text-white">
+                      {gg.type === "topic" ? (
+                        <Recommand  list_id={gg.id} title="Chinese Drama" />
+                      ) : (
+                        <Latest list_id={gg.id} />
+                      )}
+                    </div>
+                  )}
+                </SwiperSlide>
+              ))}
             </Swiper>
           </div>
         </div>
@@ -108,3 +97,6 @@ const Explore = () => {
 };
 
 export default Explore;
+
+
+
