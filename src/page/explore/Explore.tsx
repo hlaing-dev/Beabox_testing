@@ -15,69 +15,95 @@ import { useDispatch, useSelector } from "react-redux";
 import { setExpHeader } from "@/store/slices/exploreSlice";
 
 const Explore = () => {
-  const [activeTab, setActiveTab] = useState("Recommend"); // Default tab
-  const { exp_header } = useSelector((state: any) => state.explore) || {};
+  const [activeTab, setActiveTab] = useState("Recommend");
+  const { exp_header } = useSelector((state: any) => state.explore);
+  console.log(exp_header)
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tabs, setTabs] = useState(["Recommend", "Latest", "Hollywood"]);
-  const { data } = useGetExploreHeaderQuery("");
+  const { data, isLoading } = useGetExploreHeaderQuery("");
+  const swiperRef = useRef<any>(null);
+  const [show, setshow] = useState<boolean>(false);
   const dispatch = useDispatch();
 
-  // Initialize tabs from API data and ensure a fallback
+  // useEffect(() => {
+  //   const queryTab = searchParams.get("query");
+  //   if (queryTab && tabs.includes(queryTab)) {
+  //     setActiveTab(queryTab);
+  //   }
+  // }, [searchParams, tabs]);
+
   useEffect(() => {
     if (data?.data?.tabs) {
-      const apiTabs = data.data.tabs.map((t: any) => t.title);
-      setTabs([...apiTabs, "Hollywood"]);
+      const tt = data?.data?.tabs.map((t: any) => t.title);
+      setTabs([...tt, "Hollywood"]);
     }
   }, [data]);
 
-  // Handle default tab selection on component mount
   useEffect(() => {
-    if (!exp_header) {
-      dispatch(setExpHeader("Recommend")); // Default to "Recommend"
+    if (swiperRef.current) {
+      const index = tabs?.indexOf(exp_header);
+      if (index >= 0) {
+        swiperRef.current.slideTo(index);
+      }
     }
-    setActiveTab(exp_header || "Recommend");
-  }, [exp_header, dispatch]);
+  }, [exp_header, tabs]);
 
-  // Handle tab click or swipe
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    dispatch(setExpHeader(tab));
+  const handleSlideChange = (swiper: any) => {
+    const newActiveTab = tabs[swiper.activeIndex] || exp_header; // Fallback to current activeTab
+    // setActiveTab(newActiveTab);
+    dispatch(setExpHeader(newActiveTab));
+    // setSearchParams({ query: tabToQuery(newActiveTab) }); // Convert tab to query value
   };
 
   return (
-    <div className="flex justify-center items-center w-screen overflow-hidden">
-      <div className="explore_sec w-screen xl:w-[800px] flex flex-col justify-center items-center px-[10px] pb-[100px] mt-14">
-        <Banner />
-        <PopApp />
-        <div className="mt-[20px] relative">
-          <Header activeTab={activeTab} setActiveTab={handleTabChange} />
-          <div
-            className="tab-content"
-            style={{
-              minHeight: "500px", // Consistent height
-              transition: "opacity 0.3s ease", // Smooth transitions
-            }}
-          >
-            {exp_header === "Recommend" && (
-              <div>
-                <Recommand title="Chinese Drama" />
-                <Recommand title="Latest Drama" />
-              </div>
-            )}
-            {exp_header === "Latest" && (
-              <div>
-                <Recommand title="Chinese Drama" />
-                <Recommand title="Latest Drama" />
-              </div>
-            )}
-            {exp_header === "Hollywood" && (
-              <div>
-                <Latest />
-              </div>
-            )}
+    <>
+      {/* {show && <VodDetails  />} */}
+
+      <div className="flex justify-center items-center w-screen overflow-clip	">
+        <div className="explore_sec w-screen xl:w-[800px] flex flex-col justify-center items-cente px-[10px] pb-[100px] mt-14">
+          <Banner />
+          <PopApp />
+          <div className="mt-[20px] relative">
+            <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+            <Swiper
+              className=""
+              allowTouchMove={false}
+              // allowSlideNext={false}
+              onSlideChange={handleSlideChange}
+              onSwiper={(swiper) => (swiperRef.current = swiper)}
+              slidesPerView={1}
+              spaceBetween={1}
+              // loop={true}
+            >
+              <SwiperSlide>
+                {exp_header === "Recommend" && (
+                  <div className=" h-screen">
+                    <Recommand title="Chinese Drama" />
+                    <Recommand title="Latest Drama" />
+                  </div>
+                )}
+              </SwiperSlide>
+              <SwiperSlide>
+                {exp_header === "Latest" && (
+                  <div className=" h-screen">
+                    {/* <Latest /> */}
+                    <Recommand title="Chinese Drama" />
+                    <Recommand title="Latest Drama" />
+                  </div>
+                )}
+              </SwiperSlide>
+              <SwiperSlide>
+                {exp_header === "Hollywood" && (
+                  <div className=" min-h-screen">
+                    <Latest />
+                  </div>
+                )}
+              </SwiperSlide>
+            </Swiper>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
