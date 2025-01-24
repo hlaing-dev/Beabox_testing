@@ -4,6 +4,7 @@ import Routing from "./routes/Routing";
 import { useDispatch, useSelector } from "react-redux";
 import { setPanding } from "./store/slices/ModelSlice";
 import ErrorToast from "./page/home/services/ErrorToast";
+import { toast } from "@/hooks/use-toast";
 
 const App = () => {
   const { panding } = useSelector((state: any) => state.model);
@@ -23,6 +24,7 @@ const App = () => {
   const iosEventHandler = useCallback(
       (e: any) => {
           alert(e);
+          toast(e);
           console.log(e);
           setDataFromIOS(e);
       },
