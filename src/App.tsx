@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setPanding } from "./store/slices/ModelSlice";
 import ErrorToast from "./page/home/services/ErrorToast";
 import { toast } from "@/hooks/use-toast";
+import { Toaster } from './components/ui/toaster';
 
 const App = () => {
   const { panding } = useSelector((state: any) => state.model);
@@ -45,6 +46,7 @@ const App = () => {
         <>
           {" "}
           <Routing />
+          <Toaster />
           <ErrorToast />
         </>
       )}
