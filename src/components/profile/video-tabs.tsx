@@ -79,7 +79,7 @@ const VideoTabs = ({ login }: any) => {
         )}
       </TabsContent> */}
       {isLoading || historyLoading ? (
-        <div className=" flex justify-center w-screen py-[200px]">
+        <div className=" flex justify-center w-full py-[200px]">
           <div className="">
             <img src={Loader} className="w-[70px] h-[70px]" alt="Loading" />
           </div>
@@ -93,7 +93,7 @@ const VideoTabs = ({ login }: any) => {
                 <p className="text-[12px] text-[#888]">这里空空如也～</p>
               </div>
             ) : (
-              <div className="w-full relative">
+              <div className="w-full relative z-[1200]">
                 <VideoGrid
                   hasMore={hasMore}
                   fetchMoreData={fetchMoreData}
@@ -103,13 +103,13 @@ const VideoTabs = ({ login }: any) => {
             )}
           </TabsContent>
           <TabsContent value="history">
-            {!login || data?.data?.length <= 0 ? (
+            {!login || history?.data?.length <= 0 ? (
               <div className="flex flex-col justify-center items-center w-full mt-[150px]">
                 <NoVideo />
                 <p className="text-[12px] text-[#888]">这里空空如也～</p>
               </div>
             ) : (
-              <div className="w-full relative">
+              <div className="w-full relative  z-[1200]">
                 <VideoGrid
                   hasMore={hasMore}
                   fetchMoreData={fetchMoreData}
