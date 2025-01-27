@@ -39,14 +39,14 @@ const Profile = () => {
   const { data, isLoading, refetch } = useGetMyProfileQuery("");
   const dispatch = useDispatch();
   const [show, setShow] = useState(false);
-  const user = useSelector((state: any) => state.persist.user);
-  const gender = useSelector((state: any) => state.persist.gender);
-  const region = useSelector((state: any) => state.persist.region);
-  const cover = useSelector((state: any) => state.persist.cover);
+  const user = useSelector((state: any) => state?.persist?.user);
+  const gender = useSelector((state: any) => state?.persist?.gender);
+  const region = useSelector((state: any) => state?.persist?.region);
+  const cover = useSelector((state: any) => state?.persist?.cover);
   const [isCopied, setIsCopied] = useState(false); // State for feedback
 
   const handleCopy = (text: any) => {
-    navigator.clipboard
+    navigator?.clipboard
       .writeText(text)
       .then(() => {
         setIsCopied(true); // Show feedback
@@ -207,7 +207,7 @@ const Profile = () => {
               </span>{" "} */}
                 </p>
                 <p className="z-[1200] text-[14px] text-[#BBBBBB] flex gap-1 items-center">
-                  B号 : {data?.data?.user_code}{" "}
+                  B号 : {data?.data?.user_code}
                   <Copy
                     onClick={() => handleCopy(data?.data?.user_code)}
                     size={14}
@@ -217,7 +217,7 @@ const Profile = () => {
                   <div className="z-[1200] flex">
                     <div className="z-[1200] text-[12px] flex items-center gap-1 text-[#BBBBBB] bg-[#FFFFFF1F] px-3 py-1 rounded-full justify-center shrink-0">
                       {!region?.city?.length && !region?.province?.length ? (
-                        <span>Unknown</span>
+                        <span>未知</span>
                       ) : (
                         <>
                           <span>{region?.city}</span>:
@@ -229,7 +229,7 @@ const Profile = () => {
                 ) : (
                   <div className="z-[1200] flex">
                     <div className="z-[1200] text-[12px] flex items-center gap-1 text-[#BBBBBB] bg-[#FFFFFF1F] px-3 py-1 rounded-full justify-center shrink-0">
-                      <span>Unknown</span>
+                      <span>未知</span>
                     </div>
                   </div>
                 )}
