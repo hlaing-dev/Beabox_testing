@@ -69,15 +69,32 @@ const ShareOverlay: React.FC<any> = ({
     if (isIOSApp()) {
       sendEventToNative("saveVideo", post?.files[0].downloadURL);
     } else {
+      return;
       // For web
+      if (!post || !post.files || post.files.length === 0) {
+        console.error("No files available for download.");
+        return;
+      }
+    
+      const fileURL = post.files[0].downloadURL;
+      if (!fileURL) {
+        console.error("Invalid file URL.");
+        return;
+      }
+    
       const link = document.createElement("a");
       link.target = "_blank";
-      link.href = post?.files[0].downloadURL; // Set the URL of the file
-
-      link.download = "video"; // Set the name of the file to be downloaded
-      document.body.appendChild(link); // Append the link to the document body
-      link.click(); // Programmatically click the link to trigger the download
-      document.body.removeChild(link); // Remove the link after triggering the download
+      link.href = fileURL;
+      link.download = "video"; // You can also dynamically set the file name based on the file metadata if available
+    
+      // Append the link to the document body
+      document.body.appendChild(link);
+    
+      // Programmatically click the link to trigger the download
+      link.click();
+    
+      // Remove the link from the document body
+      document.body.removeChild(link);
     }
   };
 
