@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { setAuthToggle } from "@/store/slices/profileSlice";
+import { setAuthToggle, setIsDrawerOpen } from "@/store/slices/profileSlice";
 import SmallLoader from "@/components/shared/small-loader";
 const LoginForm = ({ setIsOpen }: any) => {
   const [name, setName] = useState("");
@@ -32,6 +32,7 @@ const LoginForm = ({ setIsOpen }: any) => {
   const [login, { isLoading, error: lerror }] = useLoginMutation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const authErr = localStorage.getItem("auth-error") || "";
 
   const [getCaptcha, { data, isLoading: captchaLoading }] =
     useGetCaptchaMutation();
@@ -56,6 +57,7 @@ const LoginForm = ({ setIsOpen }: any) => {
   const handleVerify = async (e: any) => {
     // Add 验证码 logic here
     e.stopPropagation();
+    e.preventDefault();
     const { emailOrPhone, password } = form.getValues();
 
     console.log("data", {
@@ -78,7 +80,9 @@ const LoginForm = ({ setIsOpen }: any) => {
       // navigate(paths.profile);
       setIsOpen(false);
     } else {
-      // setShow验证码(false);
+      if (authErr) setError(authErr);
+      setShow验证码(false);
+
       // setError("出了点问题");
     }
     // if (lerror) {
@@ -86,10 +90,15 @@ const LoginForm = ({ setIsOpen }: any) => {
     // }
   };
 
-  useEffect(() => {
-    if (lerror) setError(lerror?.data?.message);
-    setShow验证码(false);
-  }, [lerror]);
+  // const authErr = localStorage.getItem("auth-error") || "";
+  // useEffect(() => {
+  //   if (authErr) setError(authErr);
+  //   setShow验证码(false);
+  // }, [authErr]);
+
+  // useEffect(() => {
+  //   localStorage.removeItem("auth-error");
+  // }, []);
 
   return (
     <div className="px-5">
@@ -100,7 +109,7 @@ const LoginForm = ({ setIsOpen }: any) => {
           {/* Login */}
         </p>
         <div
-          onClick={() => setIsOpen(false)}
+          onClick={() => dispatch(setIsDrawerOpen(false))}
           className="bg-[#FFFFFF0A] p-2 rounded-full"
         >
           <X size={18} />
@@ -213,9 +222,14 @@ const LoginForm = ({ setIsOpen }: any) => {
               {captchaLoading ? <SmallLoader /> : "登录"}
               {/* 登录 */}
             </Button>
-            <Link to={paths.forgot_password}>
-              <p className="text-center text-[14px] mt-5">忘记密码？</p>
-            </Link>
+            <div className="flex justify-center">
+              <Link
+                to={paths.forgot_password}
+                className="text-center text-[14px] mt-5"
+              >
+                忘记密码？
+              </Link>
+            </div>
           </div>
           <Dialog open={show验证码} onOpenChange={setShow验证码}>
             <DialogContent className="bg-[#393641] z-[3000] border-0 shadow-lg rounded-lg max-w-[300px]">
