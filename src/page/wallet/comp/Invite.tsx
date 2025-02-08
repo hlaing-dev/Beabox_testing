@@ -45,6 +45,7 @@ const Invite: React.FC<InviteProps> = ({}) => {
   
     const handleShare = () => {
       if (isIOSApp()) {
+        console.log('Event:saveImage')
         sendEventToNative("saveImage", shareUrl);
       } else {
         const qrCanvas = document.querySelector("canvas"); // Select the canvas element
@@ -68,6 +69,7 @@ const Invite: React.FC<InviteProps> = ({}) => {
   
     const handleAppCopy = () => {
       if (isIOSApp()) {
+        console.log('Event:copyAppdownloadUrl')
         sendEventToNative("copyAppdownloadUrl", appDownloadLink);
       } else {
         navigator.clipboard.writeText(appDownloadLink).then(() => {
@@ -83,6 +85,7 @@ const Invite: React.FC<InviteProps> = ({}) => {
   
     const handleLinkCopy = () => {
       if (isIOSApp()) {
+        console.log('Event:copyShareUrl')
         sendEventToNative("copyShareUrl", shareUrl);
       } else {
         navigator.clipboard.writeText(shareUrl).then(() => {
