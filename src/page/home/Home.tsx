@@ -1,0 +1,608 @@
+import { useEffect, memo, useRef, useState } from "react";
+import {
+  useGetConfigQuery,
+  useGetFollowedPostsQuery,
+  useGetPostsQuery,
+} from "./services/homeApi";
+import Player from "./components/Player";
+import loader from "./vod_loader.gif";
+
+import VideoSidebar from "./components/VideoSidebar";
+import "./home.css";
+import VideoFooter from "./components/VideoFooter";
+import Top20Movies from "./components/Top20Movies";
+import TopNavbar from "./components/TopNavbar";
+import Explorer from "../explore/Explore";
+
+import { Swiper, SwiperSlide } from "swiper/react";
+import { useDispatch, useSelector } from "react-redux";
+import { setCurrentTab } from "./services/homeSlice";
+import { setCurrentActivePost } from "./services/activeSlice";
+import { setVideos } from "./services/videosSlice";
+import { setPage } from "./services/pageSlice";
+import HeartCount from "./components/Heart";
+import VideoContainer from "./components/VideoContainer";
+import Ads from "./components/Ads";
+import { setBottomLoader } from "./services/loaderSlice";
+
+const Home = () => {
+  const videoContainerRef = useRef<HTMLDivElement>(null);
+  // const [videos, setVideos] = useState<any[]>([]);
+  //const [page, setPage] = useState(1);
+  const { currentActivePost } = useSelector((state: any) => state.activeslice);
+  const { videos } = useSelector((state: any) => state.videoSlice);
+  const { page } = useSelector((state: any) => state.pageSlice);
+  const [hideBar, sethideBar] = useState(false);
+
+  //const [currentActivePost, setCurrentActivePost] = useState<any>(null); // Active post ID
+
+  const [countdown, setCountdown] = useState(3);
+  const [countNumber, setCountNumber] = useState(0); // New state for counting clicks
+  const [topmovies, setTopMovies] = useState(false);
+  const currentTab = useSelector((state: any) => state.home.currentTab);
+  const user = useSelector((state: any) => state.persist.user);
+  const [refresh, setRefresh] = useState(false);
+  const dispatch = useDispatch();
+  const [hearts, setHearts] = useState<number[]>([]); // Manage heart IDs
+  const [width, setWidth] = useState(0);
+  const [height, setHeight] = useState(0);
+
+  const removeHeart = (id: number) => {
+    setHearts((prev) => prev.filter((heartId) => heartId !== id)); // Remove the heart by ID
+  };
+
+  // const [currentTab, setCurrentTab] = useState(2);
+  const swiperRef = useRef<any>(null);
+
+  const { data: config } = useGetConfigQuery({});
+
+  // Fetch data based on the current tab
+  const {
+    data: followData,
+    isFetching: isFollowFetching,
+    refetch: followRefetch,
+    isError: followError,
+  } = useGetFollowedPostsQuery(
+    {
+      page,
+    },
+    { skip: currentTab !== 0 }
+  );
+
+  const {
+    data: forYouData,
+    isFetching: isForYouFetching,
+    refetch: forYouRefetch,
+    isError: ForyouError,
+  } = useGetPostsQuery(
+    {
+      page,
+    },
+    { skip: currentTab !== 2 }
+  );
+
+  const isLoading =
+    (currentTab === 0 && isFollowFetching) ||
+    (currentTab === 2 && isForYouFetching);
+
+  const isError = ForyouError || followError;
+
+  useEffect(() => {
+    // Determine which data corresponds to the current tab
+    const currentData =
+      currentTab === 0 ? followData : currentTab === 2 ? forYouData : null; // Add other tabs if necessary
+
+    if (currentData?.data) {
+      // Determine the key in the videos object based on the current tab
+      const videoKey =
+        currentTab === 0 ? "follow" : currentTab === 2 ? "foryou" : "";
+
+      // Filter out posts with duplicate `post_id`
+      const filteredData = currentData?.data?.filter(
+        (newPost: any) =>
+          !videos[videoKey]?.some(
+            (video: any) => video?.post_id === newPost?.post_id
+          )
+      );
+
+      if (filteredData?.length > 0) {
+        if (page === 1) {
+          // Replace videos for the current tab
+          dispatch(
+            setVideos({
+              ...videos,
+              [videoKey]: filteredData, // Update only the current tab
+            })
+          );
+        } else {
+          // Append filtered videos for the current tab
+          dispatch(
+            setVideos({
+              ...videos,
+              [videoKey]: [...videos[videoKey], ...filteredData], // Append to the current tab
+            })
+          );
+        }
+      } else {
+        // console.log("No new videos to add");
+      }
+    }
+  }, [followData, forYouData, currentTab, page]);
+
+  // Scroll to the first current post when the component is mounted
+  useEffect(() => {
+    const container = videoContainerRef.current;
+    if (container && currentActivePost) {
+      const activeElement = container.querySelector(
+        `[data-post-id="${currentActivePost}"]`
+      );
+      if (activeElement) {
+        activeElement.scrollIntoView({ block: "center" });
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const container = videoContainerRef.current;
+    if (
+      !container ||
+      videos[currentTab === 2 ? "foryou" : "follow"].length === 0
+    )
+      return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Get the post ID of the currently visible video
+            const postId = entry.target.getAttribute("data-post-id");
+            if (postId) {
+              dispatch(setCurrentActivePost(postId));
+            }
+          }
+        });
+      },
+      { root: null, rootMargin: "0px", threshold: 0.5 } // Trigger when 50% of the video is visible
+    );
+
+    // Observe all video elements
+    Array.from(container.children).forEach((child) => {
+      observer.observe(child);
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [videos[currentTab === 2 ? "foryou" : "follow"]]);
+
+  useEffect(() => {
+    if (currentActivePost) {
+      // Reset state when the active post changes
+      setCountdown(3);
+      setCountNumber(0);
+    }
+  }, [currentActivePost]);
+
+  useEffect(() => {
+    const container = videoContainerRef.current;
+    if (!container) return;
+
+    // const areAllVideosLoaded = () => {
+    //   const videoElements = container?.querySelectorAll("video");
+    //   return Array.from(videoElements).every((video) => video.readyState >= 3); // readyState 3 means data is loaded enough to play
+    // };
+
+    // Wait for all videos to be loaded before triggering pagination
+    // const waitForVideosToLoad = () => {
+    //   return new Promise((resolve) => {
+    //     const interval = setInterval(() => {
+    //       if (areAllVideosLoaded()) {
+    //         clearInterval(interval);
+    //         resolve(true);
+    //       }
+    //     }, 500); // Check every 500ms if the videos are loaded
+    //   });
+    // };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            dispatch(setPage(page + 1)); // Load more videos
+            // dispatch(setBottomLoader(true));
+            // If videos are not fully loaded, show loading spinner
+            // // Wait for videos to be ready, then trigger pagination
+            // waitForVideosToLoad().then(() => {
+            //   if (areAllVideosLoaded()) {
+            // dispatch(setPage(page + 1)); // Load more videos
+            //     dispatch(setBottomLoader(false));
+            //   } else {
+            //     dispatch(setBottomLoader(true));
+            //   }
+            // });
+          }
+        });
+      },
+      {
+        rootMargin: "100px", // Trigger the observer when 100px from the bottom
+        threshold: 0.5, // 50% visibility of the last video
+      }
+    );
+
+    // Observe the last video element
+    if (videos[currentTab === 2 ? "foryou" : "follow"].length > 1) {
+      const secondLastVideo = container.children[container.children.length - 5];
+      observer.observe(secondLastVideo);
+    }
+    // Cleanup observer on component unmount or when dependencies change
+    return () => {
+      observer.disconnect();
+    };
+  }, [videos[currentTab === 2 ? "foryou" : "follow"], refresh]);
+
+  if (topmovies) {
+    return <Top20Movies setTopMovies={setTopMovies} />;
+  }
+
+  // const handleSlideChange = (swiper: any) => {
+  //   const newTab = swiper.activeIndex; // Get the active slide index
+  //   if (currentTab !== newTab) {
+  //     dispatch(setCurrentTab(newTab));
+  //     // setCurrentTab(newTab); // Update the current tab
+  //     setPage(1);
+  //     setVideos([]);
+  //   }
+  // };
+
+  useEffect(() => {
+    if (refresh) {
+      const fetchData = async () => {
+        if (currentTab === 2) {
+          await forYouRefetch();
+        } else if (currentTab === 0) {
+          await followRefetch();
+        }
+
+        const videoKey =
+          currentTab === 2 ? "foryou" : currentTab === 0 ? "follow" : "";
+        dispatch(
+          setVideos({
+            ...videos,
+            [videoKey]: [], // Append to the current tab
+          })
+        );
+
+        const currentData =
+          currentTab === 0 ? followData : currentTab === 2 ? forYouData : null; // Add other tabs if necessary
+
+        const container = videoContainerRef.current;
+        if (container && currentData?.data[0]?.post_id) {
+          const activeElement = container.querySelector(
+            `[data-post-id="${currentData?.data[0]?.post_id}"]`
+          );
+          if (activeElement) {
+            activeElement.scrollIntoView({ block: "center" });
+          }
+        }
+        setRefresh(false);
+      };
+      fetchData();
+    }
+  }, [refresh]);
+
+  const handleTabClick = (tab: number) => {
+    dispatch(setPage(1));
+    dispatch(setCurrentActivePost(null));
+    dispatch(
+      setVideos({
+        follow: [],
+        foryou: [],
+      })
+    );
+    if (currentTab !== tab) {
+      dispatch(setCurrentTab(tab));
+
+      // setCurrentTab(tab); // Update the current tab
+
+      // dispatch(setVideos([]));
+
+      //setVideos([]);
+
+      // // Update the Swiper active index
+      // if (swiperRef.current) {
+      //   swiperRef.current.slideTo(tab); // Change the Swiper index to match the clicked tab
+      // }
+    } else {
+      // const videoKey =
+      //   currentTab === 2 ? "foryou" : currentTab === 0 ? "follow" : "";
+      // dispatch(
+      //   setVideos({
+      //     ...videos,
+      //     [videoKey]: [], // Append to the current tab
+      //   })
+      // );
+
+      setRefresh(true);
+    }
+  };
+
+  const handleRefresh = () => {
+    const videoKey =
+      currentTab === 2 ? "foryou" : currentTab === 0 ? "follow" : "";
+    dispatch(setPage(1));
+    dispatch(setCurrentActivePost(null));
+    dispatch(
+      setVideos({
+        ...videos,
+        [videoKey]: [], // Append to the current tab
+      })
+    );
+    if (currentTab === 2) {
+      forYouRefetch();
+    } else if (currentTab === 0) {
+      followRefetch();
+    }
+  };
+
+  return (
+    <div className="flex justify-center items-center">
+      <div className="max-w-[1024px] home-main w-full">
+        <TopNavbar currentTab={currentTab} onTabClick={handleTabClick} />
+        {/*<Swiper
+          initialSlide={currentTab} // Start from the third slide (index 2)
+          onSlideChange={handleSlideChange}
+          onSwiper={(swiper) => (swiperRef.current = swiper)}
+          slidesPerView={1}
+          spaceBetween={10}
+        > */}
+
+        <div className="app bg-black">
+          {refresh ? (
+            <div className="bg-[#232323] rounded-xl px-4 py-0">
+              <img src={loader} alt="" width={50} height={50} />
+            </div>
+          ) : (
+            <>
+              {/* <SwiperSlide> */}
+              {currentTab === 0 &&
+                (isLoading && videos["follow"]?.length === 0 ? (
+                  <div className="app bg-black">
+                    <div
+                      style={{
+                        textAlign: "center",
+                        padding: "20px",
+                      }}
+                    >
+                      <div className="heart">
+                        <img
+                          src={loader}
+                          className="w-[100px] h-[100px]"
+                          alt="Loading"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : !isError ? (
+                  <>
+                    <div
+                      ref={videoContainerRef}
+                      className={`app__videos pb-[74px] `}
+                    >
+                      {videos["follow"]?.map((video: any, index: any) => (
+                        <div
+                          key={index}
+                          className="video mt-[20px]"
+                          data-post-id={video?.post_id} // Add post ID to the container
+                        >
+                          <VideoContainer
+                            container={videoContainerRef.current}
+                            status={true}
+                            countNumber={countNumber}
+                            video={video}
+                            setCountNumber={setCountNumber}
+                            config={config}
+                            countdown={countdown}
+                            setWidth={setWidth}
+                            setHeight={setHeight}
+                            setHearts={setHearts}
+                            setCountdown={setCountdown}
+                            width={width}
+                            height={height}
+                            sethideBar={sethideBar}
+                          />
+
+                          {!hideBar && video?.type !== "ads" && (
+                            <VideoFooter
+                              tags={video?.tag}
+                              title={video?.title}
+                              username={video?.user?.name}
+                              city={video?.city}
+                            />
+                          )}
+
+                          {video?.type === "ads" && (
+                            <Ads ads={video?.ads_info} />
+                          )}
+
+                          {hearts.map((id: any) => (
+                            <HeartCount id={id} key={id} remove={removeHeart} />
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+
+                    {(!followData?.data?.length ||
+                      !forYouData?.data?.length) && (
+                      <p style={{ textAlign: "center" }}>
+                        {/* <b>You have seen all videos</b> */}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <div className="app bg-black">
+                    <div style={{ textAlign: "center", padding: "20px" }}>
+                      <div className="text-white flex flex-col justify-center items-center  gap-2">
+                        <div>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="33"
+                            height="33"
+                            viewBox="0 0 33 33"
+                            fill="none"
+                          >
+                            <path
+                              d="M24.4993 28.7502C24.4993 25.9212 23.3755 23.2081 21.3752 21.2077C19.3748 19.2073 16.6617 18.0835 13.8327 18.0835C11.0037 18.0835 8.2906 19.2073 6.29021 21.2077C4.28982 23.2081 3.16602 25.9212 3.16602 28.7502"
+                              stroke="#888888"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                            <path
+                              d="M13.8327 18.0833C17.5146 18.0833 20.4993 15.0986 20.4993 11.4167C20.4993 7.73477 17.5146 4.75 13.8327 4.75C10.1508 4.75 7.16602 7.73477 7.16602 11.4167C7.16602 15.0986 10.1508 18.0833 13.8327 18.0833Z"
+                              stroke="#888888"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                            <path
+                              d="M29.8337 27.4164C29.8337 22.9231 27.1671 18.7498 24.5004 16.7498C25.3769 16.0921 26.0779 15.2286 26.5411 14.2355C27.0044 13.2424 27.2157 12.1504 27.1564 11.0562C27.0971 9.96195 26.7689 8.89922 26.201 7.96204C25.6331 7.02486 24.8429 6.24212 23.9004 5.68311"
+                              stroke="#888888"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                          </svg>
+                        </div>
+                        <div className="follow-error">关注您喜欢的作者</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              {/* </SwiperSlide> */}
+              {/* <SwiperSlide> */}
+              {currentTab == 1 && (
+                <div className="w-screen">
+                  <Explorer />
+                </div>
+              )}
+              {/* </SwiperSlide>
+          <SwiperSlide> */}
+              {currentTab == 2 &&
+                (isLoading && videos["foryou"]?.length === 0 ? (
+                  <div className="app bg-black">
+                    <div
+                      style={{
+                        textAlign: "center",
+                        padding: "20px",
+                      }}
+                    >
+                      <div className="heart">
+                        <img
+                          src={loader}
+                          className="w-[100px] h-[100px]"
+                          alt="Loading"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : !isError ? (
+                  <>
+                    <div
+                      ref={videoContainerRef}
+                      className={`app__videos pb-[74px]`}
+                    >
+                      {videos["foryou"]?.map((video: any, index: any) => (
+                        <div
+                          key={index}
+                          className="video mt-[20px]"
+                          data-post-id={video.post_id} // Add post ID to the container
+                        >
+                          <VideoContainer
+                            container={videoContainerRef.current}
+                            status={true}
+                            countNumber={countNumber}
+                            video={video}
+                            setCountNumber={setCountNumber}
+                            config={config}
+                            countdown={countdown}
+                            setWidth={setWidth}
+                            setHeight={setHeight}
+                            setHearts={setHearts}
+                            setCountdown={setCountdown}
+                            width={width}
+                            height={height}
+                            sethideBar={sethideBar}
+                          />
+
+                          {!hideBar && video?.type !== "ads" && (
+                            <VideoFooter
+                              tags={video?.tag}
+                              title={video?.title}
+                              username={video?.user?.name}
+                              city={video?.city}
+                            />
+                          )}
+
+                          {video?.type === "ads" && (
+                            <Ads ads={video?.ads_info} />
+                          )}
+
+                          {hearts.map((id: any) => (
+                            <HeartCount id={id} key={id} remove={removeHeart} />
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+
+                    {(!followData?.data?.length ||
+                      !forYouData?.data?.length) && (
+                      <p style={{ textAlign: "center" }}>
+                        {/* <b>You have seen all videos</b> */}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <div className="app bg-black">
+                    <div style={{ textAlign: "center", padding: "20px" }}>
+                      <div className="text-white flex flex-col justify-center items-center  gap-2">
+                        <div>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="32"
+                            height="33"
+                            viewBox="0 0 32 33"
+                            fill="none"
+                          >
+                            <path
+                              d="M11.4031 4.62095L11.403 4.62082C14.0022 3.54025 16.8802 3.35193 19.5939 4.08509C22.3076 4.81823 24.7089 6.43272 26.4261 8.68014L26.4263 8.68032C26.4937 8.76877 26.5718 8.84833 26.6556 8.91565L27.2033 9.35581L26.5006 9.36052L21.7383 9.39246C20.9726 9.39847 20.3567 10.0226 20.3627 10.7872L20.3627 10.7877C20.3672 11.5526 20.9924 12.1689 21.7575 12.1629L21.7578 12.1629L29.9185 12.1079L29.9188 12.1079M11.4031 4.62095L31.5441 10.6738C31.5566 11.1139 31.3915 11.5398 31.0863 11.8574C30.7811 12.1751 30.3605 12.3543 29.9205 12.3579L29.9188 12.1079M11.4031 4.62095C8.80635 5.69987 6.62978 7.61268 5.21499 10.066C3.80005 12.5178 3.22479 15.3727 3.57938 18.1896C3.93397 21.0065 5.19865 23.6248 7.17475 25.6426L7.17484 25.6426C9.15302 27.6604 11.732 28.9637 14.5143 29.3547C17.2967 29.7475 20.1293 29.2043 22.578 27.8108L22.5781 27.8107C25.0249 26.417 26.9521 24.2493 28.0576 21.6402C28.3569 20.9349 29.1703 20.6058 29.8752 20.905L29.8755 20.905C30.5785 21.2025 30.9079 22.0155 30.6087 22.7208L30.6086 22.7209C29.2671 25.888 26.9264 28.5235 23.9488 30.2193C20.9694 31.9151 17.5185 32.5769 14.1274 32.0984L14.1273 32.0984C10.7378 31.6215 7.59926 30.0339 5.19598 27.5819C2.79267 25.1299 1.25895 21.9508 0.829223 18.5357C0.399503 15.1204 1.09649 11.6584 2.81532 8.68015L2.81534 8.68011C4.53244 5.70358 7.17669 3.37559 10.341 2.06238L10.3411 2.06233C13.5054 0.747344 17.01 0.518603 20.3157 1.41094M11.4031 4.62095L31.2942 10.6809M29.9188 12.1079C30.2921 12.1048 30.648 11.9527 30.9061 11.6842C31.165 11.4147 31.3048 11.0538 31.2942 10.6809M29.9188 12.1079L31.2942 10.6809M31.2942 10.6809L31.0405 2.09452C31.0179 1.33093 30.3788 0.728074 29.6155 0.750614L29.6155 0.750615C28.8505 0.773158 28.2491 1.41193 28.2716 2.17735L28.2716 2.1774L28.3834 5.99257L28.4037 6.68592L27.9458 6.16495C25.9267 3.8682 23.2757 2.21083 20.3157 1.41094M20.3157 1.41094C20.3157 1.41095 20.3157 1.41095 20.3157 1.41096L20.3809 1.16961L20.3157 1.41094ZM20.1127 10.7892C20.118 11.6924 20.8562 12.42 21.7594 12.4129L21.7364 9.14247C20.8331 9.14956 20.1056 9.88598 20.1127 10.7892Z"
+                              fill="white"
+                              stroke="#16131C"
+                              stroke-width="0.5"
+                            />
+                          </svg>
+                        </div>
+                        <div className=" text-white">
+                          网络连接失败，点击重试
+                        </div>
+                        <div className="follow-error">加载失败，请稍后重试</div>
+                        <button
+                          onClick={handleRefresh}
+                          className="refreshBtn px-5 py-1"
+                        >
+                          重试
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              {/* </SwiperSlide> */}
+            </>
+          )}
+        </div>
+        {/* </Swiper> */}
+      </div>
+    </div>
+  );
+};
+
+export default memo(Home);
