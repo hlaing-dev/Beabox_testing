@@ -1,6 +1,6 @@
 .search_input {
-  border-radius: 100px;
-  background: #171717;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .search_btn {
@@ -114,4 +114,9 @@
     rgba(206, 74, 251, 0.12) 1.58%,
     rgba(206, 74, 251, 0.04) 20.59%
   );
+}
+
+.chinese_photo1 {
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
 }

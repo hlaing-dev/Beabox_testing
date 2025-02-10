@@ -294,6 +294,11 @@ const Player = ({
   const isDraggingRef = useRef(false); // Track if the user is dragging the progress bar
   const seekTimeRef = useRef(0); // Store the seek time while dragging
   const timeDisplayRef = useRef<HTMLDivElement | null>(null); // Reference to the time display
+  const muteRef = useRef(mute); // Store latest mute state
+
+  useEffect(() => {
+    muteRef.current = mute; // Update muteRef when mute state changes
+  }, [mute]);
 
   // Format time (e.g., 65 => "01:05")
   const formatTime = (time: number) => {
@@ -359,8 +364,8 @@ const Player = ({
           style: {
             position: "absolute",
             bottom: "0px",
-            left: "3%",
-            width: "94%",
+            left: "5%",
+            width: "90%",
             height: "25px",
             zIndex: "9999",
           },
@@ -617,12 +622,18 @@ const Player = ({
               );
             });
             (artPlayerInstanceRef.current as any)?.play();
+            if (artPlayerInstanceRef.current) {
+              (artPlayerInstanceRef.current as any).muted = muteRef.current;
+            }
           } else {
             if (artPlayerInstanceRef.current) {
               // artPlayerInstanceRef.current.video.src = "";
               // artPlayerInstanceRef.current.destroy();
               // artPlayerInstanceRef.current = null;
               (artPlayerInstanceRef.current as any)?.pause();
+              if (artPlayerInstanceRef.current) {
+                (artPlayerInstanceRef.current as any).muted = muteRef.current;
+              }
             }
           }
         });

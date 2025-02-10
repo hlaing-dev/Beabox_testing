@@ -124,7 +124,7 @@ html {
 }
 
 .feed-input {
-  border-radius: 100px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.12);
   display: flex;
   /* padding: 8px 10px; */
@@ -792,7 +792,7 @@ html {
   color: #fff;
   font-variant-numeric: lining-nums proportional-nums;
   font-feature-settings: "dlig" on;
-  font-family: Inter;
+  /* font-family: Inter; */
   font-size: 20px;
   font-style: normal;
   font-weight: 700;
@@ -800,7 +800,7 @@ html {
   letter-spacing: 0.24px;
   position: absolute;
   bottom: 50px;
-  right: 18%;
+  right: 22%;
   display: flex;
   justify-content: center;
   color: white;
@@ -836,7 +836,8 @@ html {
   cursor: pointer;
 }
 
-.custom-progress-bar::-webkit-slider-thumb {
+/* .custom-progress-bar::-webkit-slider-thumb {
+  padding: 15px;
   -webkit-appearance: none !important;
   appearance: none !important;
 
@@ -846,6 +847,20 @@ html {
   border-radius: var(--thumb-radius, 50%);
   background: #cd3eff !important;
   cursor: pointer;
+} */
+
+.custom-progress-bar::-webkit-slider-thumb {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+
+  width: var(--thumb-width, 12px); /* Visual size of the thumb */
+  height: var(--thumb-height, 12px); /* Visual size of the thumb */
+
+  border-radius: var(--thumb-radius, 50%);
+  background: #cd3eff !important;
+  cursor: pointer;
+
+  position: relative;
 }
 
 .art-progress {
