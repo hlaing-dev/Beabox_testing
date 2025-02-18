@@ -19,7 +19,8 @@ export const profileApi = createApi({
     },
     responseHandler: async (response) => {
       const encryptedData = await response.json();
-
+      if (encryptedData?.status === false)
+        localStorage.setItem("profile-error", encryptedData?.message);
       try {
         const decryptedData = decryptWithAes(encryptedData?.data);
         return JSON.parse(decryptedData);
@@ -173,6 +174,14 @@ export const profileApi = createApi({
         method: "GET",
       }),
     }),
+    getMyPosts: builder.query<any, any>({
+      query: ({ page }) => ({
+        url: convertToSecureUrl(
+          `/my/post/list?status=published&pageSize=12&page=${page}`
+        ),
+        method: "GET",
+      }),
+    }),
     getSecurityQuestions: builder.mutation<any, string>({
       query: () => ({
         url: convertToSecureUrl(`/get-security-question`),
@@ -186,8 +195,10 @@ export const profileApi = createApi({
       }),
     }),
     getFollowerList: builder.query<any, any>({
-      query: ({ user_id }) => ({
-        url: convertToSecureUrl(`/follower/follower-list?user_id=${user_id}`),
+      query: ({ user_id, page }) => ({
+        url: convertToSecureUrl(
+          `/follower/follower-list?user_id=${user_id}&page=${page}`
+        ),
         method: "GET",
       }),
     }),
@@ -234,21 +245,21 @@ export const profileApi = createApi({
       query: ({ filedata, filePath }: any) => ({
         url: convertToSecureUrl(`/storage/upload`),
         method: "Post",
-        body: convertToSecurePayload({ filePath, file: filedata }),
+        body: { filePath, file: filedata },
       }),
     }),
     profileUpload: builder.mutation<any, any>({
       query: ({ file_url }: any) => ({
         url: convertToSecureUrl(`/profile/upload`),
         method: "Post",
-        body: convertToSecurePayload({ file_url }),
+        body: { file_url },
       }),
     }),
     changeCover: builder.mutation<any, any>({
       query: ({ file_url }: any) => ({
         url: convertToSecureUrl(`/profile/change-cover-photo`),
         method: "Post",
-        body: convertToSecurePayload({ file_url }),
+        body: { file_url },
       }),
     }),
     removeCover: builder.mutation<any, any>({
@@ -339,7 +350,13 @@ export const profileApi = createApi({
     }),
     getWatchHistory: builder.query<any, any>({
       query: ({ page }) => ({
-        url: convertToSecureUrl(`/watch-history?pageSize=10&page=${page}`),
+        url: convertToSecureUrl(`/watch-history?pageSize=12&page=${page}`),
+        method: "GET",
+      }),
+    }),
+    shareInfo: builder.mutation({
+      query: ({ id }) => ({
+        url: convertToSecureUrl(`/profile/share/info?user_id=${id}`),
         method: "GET",
       }),
     }),
@@ -347,6 +364,8 @@ export const profileApi = createApi({
 });
 
 export const {
+  useShareInfoMutation,
+  useGetMyPostsQuery,
   useGetPostsQuery,
   useFilterFollowingQuery,
   useFilterFollowerQuery,

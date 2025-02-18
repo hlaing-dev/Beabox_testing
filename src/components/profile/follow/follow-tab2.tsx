@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import FollowerList2 from "./follower-list2";
 import FollowingList2 from "./following-list2";
 import { useGetMyOwnProfileQuery } from "@/store/api/profileApi";
+import FollowerList from "./follower-list";
+import FollowingList from "./following-list";
 
 const FollowTabs2 = ({ id, defaultFollowTab, closeTab }: any) => {
   const user = useSelector((state: any) => state?.persist?.user) || "";
@@ -14,11 +16,9 @@ const FollowTabs2 = ({ id, defaultFollowTab, closeTab }: any) => {
     skip: !user,
   });
   const me = userData?.data;
-  console.log(userData, "me");
 
   const [active, setActive] = useState(defaultFollowTab);
   const [searchTerm, setSearchTerm] = useState<any>("");
-  console.log(searchTerm);
   return (
     <Tabs defaultValue={defaultFollowTab} className="flex flex-col">
       <div className="bg-[#16131C] w-full z-[1500] sticky top-[45px]">
@@ -67,20 +67,10 @@ const FollowTabs2 = ({ id, defaultFollowTab, closeTab }: any) => {
       </div>
       <div className="py-3 px-2 flex-1">
         <TabsContent value="follower">
-          <FollowerList2
-            searchTerm={searchTerm}
-            id={id}
-            closeTab={closeTab}
-            me={me}
-          />
+          <FollowerList searchTerm={searchTerm} id={id} />
         </TabsContent>
         <TabsContent value="following">
-          <FollowingList2
-            searchTerm={searchTerm}
-            id={id}
-            closeTab={closeTab}
-            me={me}
-          />
+          <FollowingList searchTerm={searchTerm} id={id} />
         </TabsContent>
       </div>
     </Tabs>

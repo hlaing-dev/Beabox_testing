@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { decryptImage } from "@/utils/imageDecrypt";
+import covergradient from "@/assets/profile/cover-gradient.png";
 import "../explore.css";
 
 type ImageWithPlaceholderProps = {
@@ -8,6 +9,7 @@ type ImageWithPlaceholderProps = {
   width: string | number;
   height: string | number;
   className: string;
+  needGradient?: boolean;
 };
 
 const ImageWithPlaceholder = ({
@@ -16,6 +18,7 @@ const ImageWithPlaceholder = ({
   width,
   height,
   className,
+  needGradient,
   ...props
 }: ImageWithPlaceholderProps) => {
   const imgRef = useRef<HTMLImageElement | null>(null);
@@ -53,7 +56,7 @@ const ImageWithPlaceholder = ({
   return (
     <div
       ref={containerRef}
-      className="image-container_exp bg-search-img"
+      className="image-container_exp bg-search-img relative"
       style={{ width, height }}
     >
       <img
@@ -62,8 +65,18 @@ const ImageWithPlaceholder = ({
         alt={alt}
         className={`${className} image-placeholder`}
         {...props}
-        style={{ opacity: decryptedSrc ? "1" : "0", transition: "opacity 0.3s" }}
+        style={{
+          opacity: decryptedSrc ? "1" : "0",
+          transition: "opacity 0.3s",
+        }}
       />
+      {needGradient && (
+        <img
+          className={`h-[170px]  absolute bottom-0`}
+          src={covergradient}
+          alt=""
+        />
+      )}
     </div>
   );
 };

@@ -1,18 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { useGetLikedPostQuery, useGetPostsQuery } from "@/store/api/profileApi";
+import { useGetLikedPostQuery } from "@/store/api/profileApi";
 import { useSelector } from "react-redux";
 import Loader from "@/page/home/vod_loader.gif";
 import { NoVideo } from "@/assets/profile";
 import InfinitLoad from "@/components/shared/infinit-load";
 import VideoCard from "../video-card";
-const CreatedVideo = ({ id }: any) => {
+
+const LikedVideos2 = ({ id }: any) => {
   const user = useSelector((state: any) => state.persist.user);
   const [videos, setVideos] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalData, setTotalData] = useState<number>(0);
 
-  const { data, isLoading } = useGetPostsQuery({ id, page });
+  const { data, isLoading } = useGetLikedPostQuery(
+    { user_id: id, page },
+    // { skip: !user }
+  );
 
   useEffect(() => {
     if (data?.data?.length) {
@@ -45,9 +49,10 @@ const CreatedVideo = ({ id }: any) => {
       </div>
     );
   }
+
   return (
     <div className="py-5">
-      {videos?.length <= 0 ? (
+      {!user?.token || videos.length <= 0 ? (
         <div>
           <div className="flex flex-col justify-center items-center w-full mt-[150px]">
             <NoVideo />
@@ -58,7 +63,7 @@ const CreatedVideo = ({ id }: any) => {
         <>
           <div>
             <div className="grid grid-cols-3 gap-1">
-              {videos?.map((item: any) => (
+              {videos.map((item: any) => (
                 <VideoCard key={item.id} videoData={item} />
               ))}
             </div>
@@ -75,4 +80,4 @@ const CreatedVideo = ({ id }: any) => {
   );
 };
 
-export default CreatedVideo;
+export default LikedVideos2;

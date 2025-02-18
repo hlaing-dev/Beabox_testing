@@ -40,14 +40,14 @@ const ForgotPassword = () => {
       captcha_key: captchaData?.data?.captcha_key,
     });
     if (!data?.status) {
-      setError("出了点问题");
+      setError("验证码错误");
       // setShow验证码(false);
     } else {
       dispatch(setForgotData(data?.data));
       navigate(paths.check_answer);
     }
   };
-  console.log(data, "cun");
+  // console.log(data, "cun");
   return (
     <div className="w-full h-screen px-5 flex flex-col items-center justify-between bg-[#16131C]">
       <div className="w-full">

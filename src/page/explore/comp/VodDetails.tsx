@@ -207,6 +207,8 @@ const VodDetails: React.FC<VodDetailsProps> = ({}) => {
 
           {!hideBar && files?.type !== "ads" && (
             <FeedFooter
+              badge={files?.user?.badge}
+              id={files?.user?.id}
               tags={files?.tag}
               title={files?.title}
               username={files?.user?.name}

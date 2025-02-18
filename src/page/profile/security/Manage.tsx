@@ -33,7 +33,6 @@ const Manage = () => {
   const navigate = useNavigate();
   const registerUser = useSelector((state: any) => state.persist.registerUser);
 
-  console.log(data?.data?.security_question?.answer);
 
   const onSubmitHandler = async (e: any) => {
     e.preventDefault();
@@ -55,7 +54,7 @@ const Manage = () => {
 
   const removeHandler = async () => {
     const { data } = await removeSecurityQuestion("");
-    console.log(data);
+    // console.log(data);
     if (data?.status) dispatch(setSecurityQues(null));
 
     navigate(paths.settings);

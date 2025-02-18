@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import more from "../../../assets/explore/more.png";
 import Loader from "../../../page/home/vod_loader.gif";
 import "../explore.css";
+import "../../home/home.css";
 import { useGetExploreTagQuery } from "@/store/api/explore/exploreApi";
 import { useDispatch, useSelector } from "react-redux";
 import { setDetails, setMoreTab } from "@/store/slices/exploreSlice";
@@ -18,7 +19,7 @@ interface MoreProps {}
 
 const More: React.FC<MoreProps> = () => {
   const [show, setshow] = useState<boolean>(false);
-  const { title, more_tab } = useSelector((state: any) => state.explore);
+  const { title, more_tab , tags } = useSelector((state: any) => state.explore);
   // console.log(more_tab);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -122,10 +123,10 @@ const More: React.FC<MoreProps> = () => {
   // console.log(more_tab);
 
   return (
-    <>
-      <div className="px-[10px] flex flex-col relative min-h-scree bg-[#16131C]">
+    <div className=" flex xl:justify-center items-center">
+      <div className="px-[10px] home-main flex flex-col relative min-h-scree bg-[#16131C] mx-auto">
         {/* Header */}
-        <div className=" fixed z-[99] w-full bg-transparent bg-[#16131C]">
+        <div className=" fixed z-[99] home-main w-full bg-transparent bg-[#16131C]">
           <div className="grid grid-cols-3 justify-between py-[12px] bg-[#16131C] ">
             <ChevronLeft
               onClick={() => navigate("/")}
@@ -137,7 +138,7 @@ const More: React.FC<MoreProps> = () => {
               // }}
               className="w-2/3 text-white text-[18px] text-center font-[500]"
             >
-              {title}
+              {tags}
             </h1>
           </div>
 
@@ -177,7 +178,7 @@ const More: React.FC<MoreProps> = () => {
             </div>
           </div>
         )} */}
-        <div className="py-[20px] flex flex-col gap-[20px] w-full mt-[80px]">
+        <div className="py-[20px] flex flex-col gap-[20px] w-full mt-[60px]">
           {isLoading || customLoad ? (
             <div className=" flex justify-center w-screen py-[200px]">
               <div className="">
@@ -273,7 +274,7 @@ const More: React.FC<MoreProps> = () => {
                     </div>
                   }
                   endMessage={
-                    <div className="flex hidden bg-whit pt-20 justify-center items-center">
+                    <div className=" hidden bg-whit pt-20 justify-center items-center">
                       <p className="py-10" style={{ textAlign: "center" }}>
                         <b>No video yet!</b>
                       </p>
@@ -287,7 +288,7 @@ const More: React.FC<MoreProps> = () => {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

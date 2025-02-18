@@ -1,6 +1,9 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useGetUserProfileQuery } from "@/store/api/profileApi";
-import { ChevronLeft, Copy, Flag } from "lucide-react";
+import {
+  useGetUserProfileQuery,
+  useShareInfoMutation,
+} from "@/store/api/profileApi";
+import { ChevronLeft, Copy, Flag, Search } from "lucide-react";
 import ProfileAvatar from "@/components/profile/profile-avatar";
 import Loader from "@/components/shared/loader";
 import OtherStats from "@/components/profile/other-stats";
@@ -13,6 +16,7 @@ import { useEffect, useRef, useState } from "react";
 import OscrollHeader from "@/components/profile/oscroll-header";
 import { useSelector } from "react-redux";
 import share from "@/assets/profile/share.svg";
+import BadgeImg from "@/components/shared/badge-img";
 
 const decryptImage = (arrayBuffer: any, key = 0x12, decryptSize = 4096) => {
   const data = new Uint8Array(arrayBuffer);
@@ -29,6 +33,7 @@ const OtherProfile = () => {
   const user = useSelector((state: any) => state?.persist?.user) || "";
 
   const [isCopied, setIsCopied] = useState(false);
+  const [isCopied2, setIsCopied2] = useState(false);
   const headerRef = useRef<any>(null);
   const [showHeader, setShowHeader] = useState(false);
   const navigate = useNavigate();
@@ -38,12 +43,14 @@ const OtherProfile = () => {
     refetch,
     isFetching,
   } = useGetUserProfileQuery(id || "");
+  const [shareInfo, { data: shareData, isLoading: shareLoading }] =
+    useShareInfoMutation();
   const [decryptedCover, setDecryptedCover] = useState(defaultCover);
   const [decryptedPhoto, setDecryptedPhoto] = useState("");
-  console.log(userData, "user data");
+  // console.log(userData, "user data");
   useEffect(() => {
     const loadAndDecryptCover = async () => {
-      if (!user?.token || !userData?.data?.cover_photo) {
+      if (!userData?.data?.cover_photo) {
         setDecryptedCover(defaultCover);
         return;
       }
@@ -77,7 +84,7 @@ const OtherProfile = () => {
 
   useEffect(() => {
     const loadAndDecryptPhoto = async () => {
-      if (!user?.token || !userData?.data?.profile_photo) {
+      if (!userData?.data?.profile_photo) {
         setDecryptedPhoto("");
         return;
       }
@@ -109,12 +116,26 @@ const OtherProfile = () => {
     loadAndDecryptPhoto();
   }, [userData?.data?.profile_photo]);
 
-  const handleCopy = (text: any) => {
+  const handleCopy = async (text: any) => {
+    // await shareInfo({ id });
     navigator?.clipboard
       .writeText(text)
       .then(() => {
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+      });
+  };
+  const handleCopy2 = async () => {
+    const { data } = await shareInfo({ id });
+    // console.log(data, "test data");
+    navigator?.clipboard
+      .writeText(data?.data?.link)
+      .then(() => {
+        setIsCopied2(true);
+        setTimeout(() => setIsCopied2(false), 2000);
       })
       .catch((err) => {
         console.error("Failed to copy text: ", err);
@@ -142,13 +163,15 @@ const OtherProfile = () => {
     };
   }, []);
 
-  useEffect(() => {
-    refetch();
-  }, [id]);
+  // useEffect(() => {
+  //   if (id || userData) {
+  //     refetch();
+  //   }
+  // }, [id, userData]);
 
-  if (userLoading || isFetching) return <Loader />;
+  if (userLoading) return <Loader />;
   return (
-    <div className="h-screen flex flex-col hide-sb">
+    <div className="h-screen flex flex-col hide-sb max-w-[480px] mx-auto">
       {showHeader ? (
         <>
           <div className="gradient-overlay2"></div>
@@ -170,8 +193,17 @@ const OtherProfile = () => {
       )}
       {isCopied ? (
         <div className="w-full z-[1300] absolute top-[80vh] flex justify-center">
-          <p className="text-[14px] bg-[#FFFFFF14] px-2 py-1 rounded-lg w-[83px] text-center">
+          <p className="text-[14px] bg-[#191721] px-2 py-1 rounded-lg w-[83px] text-center">
             已复制 ID
+          </p>
+        </div>
+      ) : (
+        ""
+      )}
+      {isCopied2 ? (
+        <div className="w-full z-[1300] absolute top-[80vh] flex justify-center">
+          <p className="text-[14px] bg-[#191721] px-2 py-1 rounded-lg w-[83px] text-center">
+            {shareData?.message}
           </p>
         </div>
       ) : (
@@ -208,31 +240,34 @@ const OtherProfile = () => {
           <ChevronLeft onClick={() => navigate(-1)} />
           <div className="flex gap-3 z-[1500] items-center">
             {/* <div className="bg-[#FFFFFF1F] w-10 h-10 flex justify-center items-center p-2 rounded-full">
-                <Search size={18} />
-              </div> */}
-            <div
-              onClick={() => handleCopy("Copied Link")}
-              className="bg-[#FFFFFF1F] w-10 h-10 flex justify-center items-center p-2 rounded-full"
-            >
-              <img src={share} alt="" />
-            </div>
+              <Search size={18} />
+            </div> */}
+
             <Link
               to={`/reports/profile/${id}`}
               className="bg-[#FFFFFF1F] w-10 h-10 flex justify-center items-center p-2 rounded-full"
             >
               <Flag size={18} />
             </Link>
+            <div
+              onClick={() => handleCopy2()}
+              className="bg-[#FFFFFF1F] w-10 h-10 flex justify-center items-center p-2 rounded-full"
+            >
+              <img src={share} alt="" />
+            </div>
           </div>
         </div>
         <div className="w-full flex items-center gap-3 pb-5 px-5">
           <ProfileAvatar
-            progress={userData?.data?.level_progress}
+            progressData={userData?.data?.level_progress}
             levelImage={userData?.data?.level}
             photo={decryptedPhoto}
           />
           <div className="z-[1900] flex-1 flex flex-col gap-0.5">
             <p className="z-[1900] text-[18px] flex items-center gap-1">
               {userData?.data?.nickname}
+              <BadgeImg photo={userData?.data?.badge} />
+
               <span>
                 {userData?.data?.gender == "Male" ? <MaleSVG /> : <></>}
               </span>
@@ -254,7 +289,7 @@ const OtherProfile = () => {
             userData?.data?.province &&
             userData?.data?.share_region == "on" ? (
               <div className="z-[1900] flex">
-                <div className="z-[1900] text-[12px] flex items-center gap-1 text-[#BBBBBB] bg-[#FFFFFF1F] px-3 pt-1 rounded-full justify-center shrink-0">
+                <div className="z-[1900] text-[12px] flex items-center gap-1 text-[#BBBBBB] bg-[#FFFFFF1F] px-3 py-1 rounded-full justify-center shrink-0">
                   <span>{userData?.data?.province}</span>:
                   <span>{userData?.data?.city}</span>
                 </div>
@@ -268,8 +303,8 @@ const OtherProfile = () => {
             )}
           </div>
         </div>
-        <h1 className="text-[12px] text-[#888] mb-5 italic px-5 z-[1900] relative">
-          {userData?.data?.bio && userData?.data?.hide_bio == "off"
+        <h1 className="text-[12px]  text-[#888] mb-5 px-5 z-[1900] relative xs:w-[100px] md:w-[340px] overflow-hidden break-words">
+          {userData?.data?.bio && userData?.data?.hide_bio == "on"
             ? userData?.data?.bio
             : ""}
         </h1>
@@ -300,7 +335,7 @@ const OtherProfile = () => {
         <div ref={headerRef} className="sticky z-[1500] top-0">
           {/* {showHeader ? "Show" : "Hide"} */}
         </div>
-        <div className="px-5">
+        <div className="">
           <VideoTab2
             id={id}
             showHeader={false}

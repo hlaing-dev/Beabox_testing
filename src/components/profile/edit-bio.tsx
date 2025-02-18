@@ -6,7 +6,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Button } from "../ui/button";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useChangeBioMutation } from "@/store/api/profileApi";
 import { useDispatch, useSelector } from "react-redux";
 import { setBio } from "@/store/slices/persistSlice";
@@ -45,13 +45,17 @@ const EditBio = ({ bio, refetchHandler }: any) => {
       setValue(bio);
     }
   };
+
+  useEffect(() => {
+    setValue(bio);
+  }, [isOpen]);
   return (
     <Drawer open={isOpen} onOpenChange={handleOpenChange}>
       <DrawerTrigger asChild>
         <div className="text-[14px] flex items-center justify-between">
           <h1>个性签名</h1>
           <p className="flex items-start gap-1 text-[#888]">
-            <span className="max-w-[200px] ml-auto">{bio ? bio : ""}</span>
+            <span className="max-w-[200px] ml-auto truncate">{bio ? bio : ""}</span>
             <FaAngleRight className="mt-1" />
           </p>
         </div>

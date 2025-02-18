@@ -20,7 +20,7 @@ const Question = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [checkAnswer, { isLoading }] = useCheckAnswerMutation();
-  console.log(forgotData);
+  // console.log(forgotData);
   const onSubmitHandler = async (e: any) => {
     e.preventDefault();
     const { data } = await checkAnswer({
@@ -28,7 +28,6 @@ const Question = () => {
       answer: ans,
     });
     if (!data?.status) setError("出了点问题");
-    console.log(data);
     dispatch(setForgotToken(data?.data?.token));
     navigate(paths.reset_password);
   };

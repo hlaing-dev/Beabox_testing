@@ -1,16 +1,12 @@
 import Stats from "@/components/profile/stats";
-import { Person } from "@/assets/profile";
 import defaultCover from "@/assets/cover.jpg";
 import center from "@/assets/profile/center3.png";
 import VideoTabs from "@/components/profile/video-tabs";
 import { Link } from "react-router-dom";
 import { paths } from "@/routes/paths";
-import {
-  useGetMyOwnProfileQuery,
-  useGetMyProfileQuery,
-} from "@/store/api/profileApi";
+import { useGetMyOwnProfileQuery } from "@/store/api/profileApi";
 import { useDispatch, useSelector } from "react-redux";
-import { PenIcon as UserPen, Bell, X, Copy, ChevronRight } from "lucide-react";
+import { UserPen, Bell, X, Copy, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SettingBtn from "@/components/profile/setting-btn";
 import ProfileAvatar from "@/components/profile/profile-avatar";
@@ -20,16 +16,13 @@ import Loader from "@/components/shared/loader";
 import MaleSVG from "@/assets/profile/male";
 import FemaleSVG from "@/assets/profile/female";
 import EditCover from "@/components/profile/edit-cover";
-import AuthDrawer from "@/components/profile/auth/auth-drawer";
 import ScrollHeader from "@/components/profile/scroll-header";
 import { setIsDrawerOpen } from "@/store/slices/profileSlice";
-import normal from "@/assets/profile/normal.png";
-import gold from "@/assets/profile/gold.png";
-import silver from "@/assets/profile/silver.png";
+import BadgeImg from "@/components/shared/badge-img";
 
 // A helper function that mimdata?.data?.profile_photoics your Kotlin logic.
 // It XORs only the first 4096 bytes (or the data size if smaller) and decodes the result as text.
-const decryptImage = (arrayBuffer, key = 0x12, decryptSize = 4096) => {
+const decryptImage = (arrayBuffer: any, key = 0x12, decryptSize = 4096) => {
   const data = new Uint8Array(arrayBuffer);
   const maxSize = Math.min(decryptSize, data.length);
   for (let i = 0; i < maxSize; i++) {
@@ -42,14 +35,13 @@ const decryptImage = (arrayBuffer, key = 0x12, decryptSize = 4096) => {
 const Profile = () => {
   const headerRef = useRef(null);
   const [showHeader, setShowHeader] = useState(false);
-  const user = useSelector((state) => state?.persist?.user) || "";
+  const user = useSelector((state: any) => state?.persist?.user) || "";
   const { data, isLoading, refetch } = useGetMyOwnProfileQuery("", {
     skip: !user,
   });
-  console.log(data, "data");
+  const progressData = data?.data?.level_progress;
+  // console.log(data, "data");
   const [show, setShow] = useState(false);
-  const gender = useSelector((state) => state?.persist?.gender);
-  const region = useSelector((state) => state?.persist?.region);
   const [isCopied, setIsCopied] = useState(false);
   const dispatch = useDispatch();
   // decryptedCover and decryptedPhoto will now hold a string (for example, a data URL)
@@ -72,7 +64,7 @@ const Profile = () => {
           setDecryptedCover(coverUrl);
           return;
         }
-        console.log("coverUrl is =>", coverUrl);
+        // console.log("coverUrl is =>", coverUrl);
 
         // Fetch the encrypted image data
         const response = await fetch(coverUrl);
@@ -145,7 +137,7 @@ const Profile = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleCopy = (text) => {
+  const handleCopy = (text: any) => {
     navigator?.clipboard
       .writeText(text)
       .then(() => {
@@ -164,15 +156,10 @@ const Profile = () => {
     if (user) refetch();
   }, [user, data]);
 
-  useEffect(()=>{
-    if(data) {
-      console.log('data is=>', data);
-    }
-  },[data]);
   if (isLoading) return <Loader />;
 
   return (
-    <div className="h-screen flex flex-col hide-sb">
+    <div className="h-screen flex flex-col hide-sb max-w-[480px] mx-auto">
       {showHeader ? (
         <>
           <div className="gradient-overlay2"></div>
@@ -252,7 +239,7 @@ const Profile = () => {
         </div>
         <div className="z-[1900] flex my-5 justify-between items-center px-5">
           {user?.token ? (
-            <EditCover decryptedCover={decryptedCover} />
+            <EditCover decryptedCover={decryptedCover} refetch={refetch} />
           ) : (
             <div></div>
           )}
@@ -268,7 +255,7 @@ const Profile = () => {
         </div>
         <div className="w-full flex items-center gap-3 pb-5 px-5">
           <ProfileAvatar
-            progress={data?.data?.level_progress}
+            progressData={data?.data?.level_progress}
             levelImage={data?.data?.level}
             photo={decryptedPhoto}
           />
@@ -284,21 +271,7 @@ const Profile = () => {
             <div className="z-[1900] flex-1 flex flex-col gap-0.5">
               <p className="z-[1900] text-[18px] flex items-center gap-1">
                 {data?.data?.nickname}
-                {data?.data?.account_type == "normal" ? (
-                  <img className="w-5" src={normal} alt="" />
-                ) : (
-                  <></>
-                )}
-                {data?.data?.account_type == "silver" ? (
-                  <img className="w-5" src={silver} alt="" />
-                ) : (
-                  <></>
-                )}
-                {data?.data?.account_type == "gold" ? (
-                  <img className="w-5" src={gold} alt="" />
-                ) : (
-                  <></>
-                )}
+                <BadgeImg photo={data?.data?.badge} />
                 <span>
                   {data?.data?.gender === "Male" ? <MaleSVG /> : null}
                 </span>
@@ -337,11 +310,11 @@ const Profile = () => {
             </div>
           )}
         </div>
-        <h1 className="text-[12px] text-[#888] mb-5 italic px-5 z-[1900] relative">
+        <h1 className="text-[12px]  text-[#888] mb-5 z-[1900] relative">
           {user?.token ? (
             <>
               {data?.data?.hide_bio === "on" ? (
-                <div className="text-[12px] text-[#888] mb-5 italic">
+                <div className="text-[12px] xs:w-[100px] md:w-[340px] overflow-hidden break-words px-5  text-[#888] mb-5">
                   {data?.data?.bio}
                 </div>
               ) : (
@@ -351,7 +324,7 @@ const Profile = () => {
                   ) : (
                     <Link
                       to={paths.add_bio}
-                      className="text-[12px] text-[#FFFFFFCC] bg-[#FFFFFF14] px-2 py-1 w-[91px] text-center rounded-full"
+                      className="text-[12px] ml-5 text-[#FFFFFFCC] bg-[#FFFFFF14] px-2 py-1 w-[91px] text-center rounded-full"
                     >
                       + 个人简介
                     </Link>
@@ -362,20 +335,6 @@ const Profile = () => {
           ) : (
             <></>
           )}
-          {/* {data?.data?.hide_bio === "on" ? null : user?.token ? (
-            data?.data?.bio ? (
-              <div className="text-[12px] text-[#888] mb-5 italic">
-                {data?.data?.bio}
-              </div>
-            ) : (
-              <Link
-                to={paths.add_bio}
-                className="text-[12px] text-[#FFFFFFCC] bg-[#FFFFFF14] px-2 py-1 w-[91px] text-center rounded-full"
-              >
-                + 个人简介
-              </Link>
-            )
-          ) : null} */}
         </h1>
         <div className={`${showHeader ? "opacity-0" : "opacity-1"}`}>
           <Stats
@@ -399,12 +358,8 @@ const Profile = () => {
           ) : null}
         </div>
         <div ref={headerRef} className="sticky z-[1500] top-0"></div>
-        <div className="px-5">
-          <VideoTabs
-            headerRef={headerRef}
-            showHeader={showHeader}
-            login={user?.token}
-          />
+        <div className="">
+          <VideoTabs />
         </div>
       </div>
     </div>

@@ -213,7 +213,7 @@ const VideoFeed = ({
               <img src={sc} alt="" />
             </div>
             <input
-              className="feed-input w-full pl-[45px] py-[8px]" 
+              className="feed-input w-full pl-[45px] py-[8px]"
               placeholder={query}
               onClick={handleSearch}
             />
@@ -244,6 +244,8 @@ const VideoFeed = ({
             />
             {!hideBar && video?.type !== "ads" && (
               <FeedFooter
+                badge={video?.user?.badge}
+                id={video?.user?.id}
                 tags={video?.tag}
                 title={video?.title}
                 username={video?.user?.name}
