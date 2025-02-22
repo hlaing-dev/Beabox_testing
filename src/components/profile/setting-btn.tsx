@@ -9,50 +9,50 @@ import UserStar from "@/assets/user-star.png";
 
 const SettingBtn = ({ setShow }: any) => {
   const navigate = useNavigate();
-  const user = useSelector((state: any) => state.persist.user);
+  const user = useSelector((state: any) => state?.persist?.user);
   const [isOpen, setIsOpen] = useState(false);
 
   const data = [
     // {
     //   title: "Balance",
-    //   icon: <Wallet size={14} />,
+    //   icon: <Wallet size={24} />,
     //   link: paths.wallet,
     // },
     {
       title: "创作者中心",
-      icon: <img src={UserStar} className="w-3.5" />,
+      icon: <img src={UserStar} className="w-6" />,
       // link: paths.settings,
     },
     {
       title: "编辑资料",
-      icon: <UserPen size={14} />,
+      icon: <UserPen size={24} />,
       link: paths.profileDetail,
     },
     {
       title: "邀请码",
-      icon: <QrCode size={14} />,
+      icon: <QrCode size={24} />,
       link: paths.wallet_invite,
     },
     {
       title: "设置和隐私",
-      icon: <Settings size={14} />,
+      icon: <Settings size={24} />,
       link: paths.settings,
     },
   ];
   const data2 = [
     {
       title: "创作者中心",
-      icon: <img src={UserStar} className="w-3.5" />,
+      icon: <img src={UserStar} className="w-6" />,
       // link: paths.settings,
     },
     // {
     //   title: "创作者中心",
-    //   icon: <UserPen size={14} />,
+    //   icon: <UserPen size={24} />,
     //   link: paths.settings,
     // },
     {
       title: "设置和隐私",
-      icon: <Settings size={14} />,
+      icon: <Settings size={24} />,
       link: paths.settings,
     },
   ];
@@ -63,7 +63,7 @@ const SettingBtn = ({ setShow }: any) => {
           <Menu />
         </button>
       </DrawerTrigger>
-      <DrawerContent className="border-0 bg-[#121012] z-[1600]">
+      <DrawerContent className="border-0 bg-[#121012] z-[3600]">
         <div className="w-full px-5 py-7">
           <div className="space-y-3">
             {(user?.token ? data : data2)?.map(
@@ -79,6 +79,7 @@ const SettingBtn = ({ setShow }: any) => {
                         navigate(link);
                       }
                     }}
+                    className="pt-4"
                   >
                     <p className="text-[14px] flex items-center gap-2">
                       {icon}

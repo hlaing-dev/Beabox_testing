@@ -17,6 +17,7 @@ import OscrollHeader from "@/components/profile/oscroll-header";
 import { useSelector } from "react-redux";
 import share from "@/assets/profile/share.svg";
 import BadgeImg from "@/components/shared/badge-img";
+import SearchVideo from "@/components/profile/video/search-video";
 
 const decryptImage = (arrayBuffer: any, key = 0x12, decryptSize = 4096) => {
   const data = new Uint8Array(arrayBuffer);
@@ -47,6 +48,21 @@ const OtherProfile = () => {
     useShareInfoMutation();
   const [decryptedCover, setDecryptedCover] = useState(defaultCover);
   const [decryptedPhoto, setDecryptedPhoto] = useState("");
+  const [cachedDownloadLink, setCachedDownloadLink] = useState(null);
+
+  useEffect(() => {
+    const fetchShareInfo = async () => {
+      try {
+        const { data } = await shareInfo({ id });
+        const appDownloadLink = data?.data?.link;
+        setCachedDownloadLink(appDownloadLink);
+      } catch (error) {
+        console.error("Error fetching share info:", error);
+      }
+    };
+
+    fetchShareInfo();
+  }, [id]);
   // console.log(userData, "user data");
   useEffect(() => {
     const loadAndDecryptCover = async () => {
@@ -128,18 +144,56 @@ const OtherProfile = () => {
         console.error("Failed to copy text: ", err);
       });
   };
-  const handleCopy2 = async () => {
-    const { data } = await shareInfo({ id });
-    // console.log(data, "test data");
-    navigator?.clipboard
-      .writeText(data?.data?.link)
-      .then(() => {
-        setIsCopied2(true);
-        setTimeout(() => setIsCopied2(false), 2000);
-      })
-      .catch((err) => {
-        console.error("Failed to copy text: ", err);
+  const isIOSApp = () => {
+    return (
+      (window as any).webkit &&
+      (window as any).webkit.messageHandlers &&
+      (window as any).webkit.messageHandlers.jsBridge
+    );
+  };
+  const sendEventToNative = (name: string, text: string) => {
+    if (
+      (window as any).webkit &&
+      (window as any).webkit.messageHandlers &&
+      (window as any).webkit.messageHandlers.jsBridge
+    ) {
+      (window as any).webkit.messageHandlers.jsBridge.postMessage({
+        eventName: name,
+        value: text,
       });
+    }
+  };
+  const handleCopy2 = async () => {
+    // If we already have a cached link, use it
+    if (cachedDownloadLink) {
+      copyToClipboard(cachedDownloadLink);
+      return;
+    }
+
+    try {
+      const { data } = await shareInfo({ id });
+      const appDownloadLink = data?.data?.link;
+      setCachedDownloadLink(appDownloadLink);
+      copyToClipboard(appDownloadLink);
+    } catch (error) {
+      console.error("Error fetching share info:", error);
+    }
+  };
+
+  const copyToClipboard = (link) => {
+    if (isIOSApp()) {
+      sendEventToNative("copyAppdownloadUrl", link);
+    } else {
+      navigator.clipboard
+        .writeText(link)
+        .then(() => {
+          setIsCopied2(true);
+          setTimeout(() => setIsCopied2(false), 2000);
+        })
+        .catch((err) => {
+          console.error("Failed to copy text: ", err);
+        });
+    }
   };
 
   useEffect(() => {
@@ -216,6 +270,8 @@ const OtherProfile = () => {
           } top-0 w-full z-[1600] py-5`}
         >
           <OscrollHeader
+            userData={userData}
+            handleCopy2={handleCopy2}
             photo={decryptedPhoto}
             name={userData?.data?.nickname}
             visibility={userData?.data?.content_visibility}
@@ -223,25 +279,10 @@ const OtherProfile = () => {
             dphoto={userData?.data?.cover_photo}
           />
         </div>
-        {/* {showHeader ? (
-          <div className="px-5 fixed top-0 w-full z-[1600] py-5">
-            <OscrollHeader
-              photo={userData?.data?.profile_photo}
-              name={userData?.data?.nickname}
-              visibility={userData?.data?.content_visibility}
-              id={id}
-              dphoto={userData?.data?.cover_photo}
-            />
-          </div>
-        ) : (
-          <></>
-        )} */}
         <div className="z-[1900] relative px-5 w-full flex gap-3 my-5 justify-between items-center">
           <ChevronLeft onClick={() => navigate(-1)} />
           <div className="flex gap-3 z-[1500] items-center">
-            {/* <div className="bg-[#FFFFFF1F] w-10 h-10 flex justify-center items-center p-2 rounded-full">
-              <Search size={18} />
-            </div> */}
+            <SearchVideo id={userData?.data?.id} />
 
             <Link
               to={`/reports/profile/${id}`}
@@ -274,9 +315,6 @@ const OtherProfile = () => {
               <span>
                 {userData?.data?.gender == "Female" ? <FemaleSVG /> : <></>}
               </span>
-              {/* <span>
-                <BsPatchCheckFill className="z-[1200] text-[#888]" />
-              </span>{" "} */}
             </p>
             <p className="z-[1900] text-[14px] text-[#BBBBBB] flex items-center gap-2">
               B号 : {userData?.data?.user_code}{" "}

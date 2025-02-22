@@ -39,6 +39,7 @@ const Profile = () => {
   const { data, isLoading, refetch } = useGetMyOwnProfileQuery("", {
     skip: !user,
   });
+  console.log(data);
   const progressData = data?.data?.level_progress;
   // console.log(data, "data");
   const [show, setShow] = useState(false);
@@ -84,6 +85,18 @@ const Profile = () => {
 
     loadAndDecryptCover();
   }, [data?.data?.cover_photo, user?.token]);
+
+  useEffect(() => {
+    if (show) {
+      document.body.style.overflow = "hidden"; // Disable scrolling
+    } else {
+      document.body.style.overflow = ""; // Reset scrolling
+    }
+
+    return () => {
+      document.body.style.overflow = ""; // Cleanup when component unmounts
+    };
+  }, [show]);
 
   // Effect to load and decrypt profile photo
   useEffect(() => {
@@ -156,6 +169,10 @@ const Profile = () => {
     if (user) refetch();
   }, [user, data]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   if (isLoading) return <Loader />;
 
   return (
@@ -187,7 +204,7 @@ const Profile = () => {
         </div>
       )}
       {show && (
-        <div className="absolute top-0 z-[2300] left-0 w-full h-full mx-auto flex flex-col justify-center items-center bg-black/80">
+        <div className="fixed top-0 z-[2300] left-0 w-full h-full mx-auto flex flex-col justify-center items-center bg-black/80">
           <div className="z-[1200] px-10">
             <div className="z-[1200] h-[250px] gradient-b rounded-lg relative">
               <img
@@ -235,11 +252,16 @@ const Profile = () => {
             name={data?.data?.nickname}
             login={user?.token}
             dphoto={data?.data?.cover_photo}
+            setShow={setShow}
           />
         </div>
         <div className="z-[1900] flex my-5 justify-between items-center px-5">
           {user?.token ? (
-            <EditCover decryptedCover={decryptedCover} refetch={refetch} />
+            <EditCover
+              coverimg={data?.data?.cover_photo}
+              decryptedCover={decryptedCover}
+              refetch={refetch}
+            />
           ) : (
             <div></div>
           )}
@@ -264,7 +286,7 @@ const Profile = () => {
               onClick={() => dispatch(setIsDrawerOpen(true))}
               className="z-[1900] flex items-center gap-2 flex-1"
             >
-              <span className="z-[1200] text-[18px]">点击登陆</span>
+              <span className="z-[1200] text-[18px]">点击登录</span>
               <ChevronRight size={18} />
             </div>
           ) : (

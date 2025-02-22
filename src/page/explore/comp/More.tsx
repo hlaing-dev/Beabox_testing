@@ -14,13 +14,15 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import ImageWithPlaceholder from "@/page/explore/comp/imgPlaceHolder";
 import empty from "../../../page/home/empty.png";
 import personE from "../../../assets/explore/personE.svg";
+import VideoFeed from "@/page/home/components/VideoFeed";
 
 interface MoreProps {}
 
 const More: React.FC<MoreProps> = () => {
   const [show, setshow] = useState<boolean>(false);
-  const { title, more_tab , tags } = useSelector((state: any) => state.explore);
-  // console.log(more_tab);
+  const { title, more_tab, tags } = useSelector((state: any) => state.explore);
+  const [selectedMovieId, setSelectedMovieId] = useState(null);
+  const [showVideoFeed, setShowVideoFeed] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const dispatch = useDispatch();
@@ -86,9 +88,11 @@ const More: React.FC<MoreProps> = () => {
     setPage((prevPage) => prevPage + 1);
   };
 
-  const showDetailsVod = (file: any) => {
-    dispatch(setDetails(file));
-    navigate(paths.vod_details);
+  const showDetailsVod = (item: any) => {
+    // dispatch(setDetails(file));
+    // navigate("/vod_details");
+    setSelectedMovieId(item?.post_id);
+    setShowVideoFeed(true);
   };
 
   const handleTabChange = (ff: any) => {
@@ -122,21 +126,46 @@ const More: React.FC<MoreProps> = () => {
   // console.log(data?.data);
   // console.log(more_tab);
 
+  // if (showVideoFeed && selectedMovieId) {
+  //   return (
+  //     <div className="z-[9900] h-screen fixed top-0 overflow-y-scroll left-0 w-full">
+  //       <VideoFeed
+  //         videos={list}
+  //         currentActiveId={selectedMovieId}
+  //         setShowVideoFeed={setShowVideoFeed}
+  //         query={"query"}
+  //       />
+  //     </div>
+  //   );
+  // }
+
   return (
-    <div className=" flex xl:justify-center items-center">
-      <div className="px-[10px] home-main flex flex-col relative min-h-scree bg-[#16131C] mx-auto">
+    <div className="">
+      {showVideoFeed && selectedMovieId ? (
+        <div className="z-[9900] h-screen fixed top-0 overflow-y-scroll left-0 w-full">
+          <VideoFeed
+            videos={list}
+            currentActiveId={selectedMovieId}
+            setShowVideoFeed={setShowVideoFeed}
+            query={"搜索影片"}
+          />
+        </div>
+      ) : (
+        <></>
+      )}
+      <div className="px-[10px] flex flex-col relative min-h-scree bg-[#16131C] mx-auto">
         {/* Header */}
-        <div className=" fixed z-[99] home-main w-full bg-transparent bg-[#16131C]">
-          <div className="grid grid-cols-3 justify-between py-[12px] bg-[#16131C] ">
+        <div className=" fixed z-[99] w-full bg-transparent bg-[#16131C]">
+          <div className="flex justify-center w-full py-[12px] bg-[#16131C] relative">
             <ChevronLeft
               onClick={() => navigate("/")}
-              className="rec_exp_more_btn px-[2px]"
+              className="rec_exp_more_btn px-[2px] fixed left-5 z-[999]"
             />
             <h1
               // onClick={() => {
               //   window.scrollTo({ top: 0, behavior: "smooth" });
               // }}
-              className="w-2/3 text-white text-[18px] text-center font-[500]"
+              className=" pr-[10px] text-white text-[18px] font-[500]"
             >
               {tags}
             </h1>
@@ -196,7 +225,7 @@ const More: React.FC<MoreProps> = () => {
                   >
                     <div
                       className=" relative flex justify-center items-center bg-[#010101] rounded-t-[4px] overflow-hidden  h-[240px]"
-                      onClick={() => showDetailsVod(item)}
+                      // onClick={() => showDetailsVod(item)}
                     >
                       <ImageWithPlaceholder
                         src={item?.preview_image}
