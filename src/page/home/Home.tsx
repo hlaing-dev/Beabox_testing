@@ -84,10 +84,6 @@ const Home = () => {
     { skip: currentTab !== 2 }
   );
 
-  // console.log(forYouData); in useEffect
-  useEffect(() => {
-    console.log(forYouData);
-  }, [forYouData]);
   const isLoading =
     (currentTab === 0 && isFollowFetching) ||
     (currentTab === 2 && isForYouFetching);
@@ -301,7 +297,6 @@ const Home = () => {
               ]?.slice(videosToRender?.length, videosToRender?.length + 3) ||
               [];
 
-            // console.log(initialVideos);
             setVideosToRender((prev) => [...prev, ...lastFiveVideos]);
           }
         });
@@ -314,7 +309,7 @@ const Home = () => {
 
     // Observe the last video element
     if (videosToRender.length > 1) {
-      const secondLastVideo = container.children[container.children.length - 2];
+      const secondLastVideo = container.children[container.children.length - 1];
       if (secondLastVideo) {
         observer.observe(secondLastVideo);
       }
@@ -365,6 +360,7 @@ const Home = () => {
             activeElement.scrollIntoView({ block: "center" });
           }
         }
+
         setRefresh(false);
       };
       fetchData();
@@ -402,6 +398,7 @@ const Home = () => {
       //     [videoKey]: [], // Append to the current tab
       //   })
       // );
+      setStart(false);
 
       setRefresh(true);
     }
@@ -412,6 +409,8 @@ const Home = () => {
       currentTab === 2 ? "foryou" : currentTab === 0 ? "follow" : "";
     dispatch(setPage(1));
     dispatch(setCurrentActivePost(null));
+    setStart(false);
+
     dispatch(
       setVideos({
         ...videos,
