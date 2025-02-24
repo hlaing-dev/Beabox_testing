@@ -185,38 +185,37 @@ const Home = () => {
               const currentVideos = videos[currentVideoKey] || [];
               const currentIndex = currentVideos.findIndex((v: any) => v.post_id === postId);
               
-              // Preload next 3 videos
+              // Simple preloading logic
               if (currentIndex !== -1) {
-                for (let i = 1; i <= 3; i++) {
-                  const nextVideo = currentVideos[currentIndex + i];
-                  if (nextVideo) {
-                    // Create a video element for preloading
-                    const preloadVideo = document.createElement('video');
-                    preloadVideo.preload = 'metadata';
-                    preloadVideo.src = nextVideo.url;
-                    
-                    // Add range request headers
+                const preloadedUrls = new Set<string>();
+
+                const preloadVideo = async (url: string) => {
+                  if (!url || preloadedUrls.has(url)) return;
+                  
+                  try {
                     const headers = new Headers();
-                    headers.append('Range', 'bytes=0-1048575'); // First 1MB only
+                    headers.append('Range', 'bytes=0-1024');
                     
-                    fetch(nextVideo.url, { headers })
-                      .then(response => {
-                        if (response.status === 206) {
-                          // Range request successful
-                          console.log('Preloaded metadata for next video');
-                        }
-                      })
-                      .catch(() => {
-                        // Ignore preload errors
-                      });
-                      
-                    // Clean up after 10 seconds
-                    setTimeout(() => {
-                      preloadVideo.src = '';
-                      preloadVideo.load();
-                    }, 10000);
+                    const response = await fetch(url, { headers });
+                    if (response.status === 206) {
+                      preloadedUrls.add(url);
+                    }
+                  } catch (error) {
+                    console.error('Failed to preload video:', error);
                   }
-                }
+                };
+
+                // Always preload next 3 videos sequentially
+                const preloadNextVideos = async () => {
+                  for (let i = 1; i <= 3; i++) {
+                    const nextVideo = currentVideos[currentIndex + i];
+                    if (nextVideo?.files?.[0]?.resourceURL) {
+                      await preloadVideo(nextVideo.files[0].resourceURL);
+                    }
+                  }
+                };
+
+                preloadNextVideos().catch(console.error);
               }
             }
           }

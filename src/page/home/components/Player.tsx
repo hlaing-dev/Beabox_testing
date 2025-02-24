@@ -147,31 +147,68 @@ const Player = ({
       fullscreen: false,
       theme: "#d53ff0",
       icons: {
-        loading: `<img width="100" height="100" src=${vod_loader}>`,
-        state: `<img src="${indicator}" width="50" height="50" alt="Play">`,
+        loading: `<div class="video-loading-indicator" style="display: none;"><img width="100" height="100" src=${vod_loader}></div>`,
+        state: `<div class="video-play-indicator" style="display: none;"><img src="${indicator}" width="50" height="50" alt="Play"></div>`,
       },
       type: 'mp4',
       customType: {
         mp4: function(video: HTMLVideoElement, url: string) {
           // Configure video element
-          video.src = url;
+          video.preload = "metadata";
           
-          // Enable range requests
-          const initVideo = () => {
-            // Start with metadata only
-            video.preload = "metadata";
+          const loadVideo = async () => {
+            try {
+              // Try to load just metadata first
+              const headers = new Headers();
+              headers.append('Range', 'bytes=0-1024'); // Just get first 1KB to check range support
+              
+              const response = await fetch(url, { 
+                headers,
+                method: 'GET',
+              });
+              
+              if (response.status === 206) {
+                // Server supports range requests, set video source
+                video.src = url;
+                
+                // If this is active video, start loading more
+                if (isActive) {
+                  video.preload = "auto";
+                }
+              } else {
+                // Server doesn't support range requests, fallback to normal loading
+                video.src = url;
+                video.preload = "metadata";
+              }
+            } catch (error) {
+              console.error('Error loading video:', error);
+              // Fallback to basic loading
+              video.src = url;
+              video.preload = "metadata";
+            }
           };
 
-          // Initialize video with proper settings
-          if (video.readyState === 0) {
-            video.addEventListener('loadedmetadata', initVideo, { once: true });
-          } else {
-            initVideo();
-          }
+          // Start loading process
+          loadVideo().catch(console.error);
+          
+          // Add event listeners for dynamic loading
+          video.addEventListener('canplaythrough', () => {
+            // Once we can play through current buffer, load more if active
+            if (isActive) {
+              video.preload = "auto";
+            }
+          });
+
+          video.addEventListener('waiting', () => {
+            // If video is waiting for data and is active, ensure we're loading
+            if (isActive) {
+              video.preload = "auto";
+            }
+          });
           
           // Clean up function
           return () => {
-            video.src = '';
+            video.removeAttribute('src');
             video.load();
           };
         },
@@ -407,29 +444,68 @@ const Player = ({
       if (progressBarRef?.current) {
         progressBarRef.current.style.opacity = "1";
       }
+
+      // Initially show play button when video is ready
+      const loadingIndicator = artPlayerInstanceRef.current?.template?.$loading?.querySelector('.video-loading-indicator') as HTMLDivElement;
+      const playIndicator = artPlayerInstanceRef.current?.template?.$state?.querySelector('.video-play-indicator') as HTMLDivElement;
+      
+      if (loadingIndicator) loadingIndicator.style.display = "none";
+      if (playIndicator) playIndicator.style.display = "block";
     });
 
     // Enhanced error handling
     artPlayerInstanceRef.current.on("error", (error) => {
       console.error("Video loading error:", error);
-      if (playIconRef.current) {
-        playIconRef.current.style.display = "block";
-      }
+      const loadingIndicator = artPlayerInstanceRef.current?.template?.$loading?.querySelector('.video-loading-indicator') as HTMLDivElement;
+      const playIndicator = artPlayerInstanceRef.current?.template?.$state?.querySelector('.video-play-indicator') as HTMLDivElement;
+      
+      if (loadingIndicator) loadingIndicator.style.display = "none";
+      if (playIndicator) playIndicator.style.display = "block";
     });
 
     // Show/hide play button based on state
     artPlayerInstanceRef.current.on("pause", () => {
       setIsPaused(true);
-      if (playIconRef.current) {
-        playIconRef.current.style.display = "block";
-      }
+      const loadingIndicator = artPlayerInstanceRef.current?.template?.$loading?.querySelector('.video-loading-indicator') as HTMLDivElement;
+      const playIndicator = artPlayerInstanceRef.current?.template?.$state?.querySelector('.video-play-indicator') as HTMLDivElement;
+      
+      if (loadingIndicator) loadingIndicator.style.display = "none";
+      if (playIndicator) playIndicator.style.display = "block";
     });
 
     artPlayerInstanceRef.current.on("play", () => {
       setIsPaused(false);
-      if (playIconRef.current) {
-        playIconRef.current.style.display = "none";
-      }
+      const loadingIndicator = artPlayerInstanceRef.current?.template?.$loading?.querySelector('.video-loading-indicator') as HTMLDivElement;
+      const playIndicator = artPlayerInstanceRef.current?.template?.$state?.querySelector('.video-play-indicator') as HTMLDivElement;
+      
+      if (loadingIndicator) loadingIndicator.style.display = "none";
+      if (playIndicator) playIndicator.style.display = "none";
+    });
+
+    // Add loading state handler
+    artPlayerInstanceRef.current.on("video:waiting", () => {
+      const loadingIndicator = artPlayerInstanceRef.current?.template?.$loading?.querySelector('.video-loading-indicator') as HTMLDivElement;
+      const playIndicator = artPlayerInstanceRef.current?.template?.$state?.querySelector('.video-play-indicator') as HTMLDivElement;
+      
+      if (loadingIndicator) loadingIndicator.style.display = "block";
+      if (playIndicator) playIndicator.style.display = "none";
+    });
+
+    artPlayerInstanceRef.current.on("video:playing", () => {
+      const loadingIndicator = artPlayerInstanceRef.current?.template?.$loading?.querySelector('.video-loading-indicator') as HTMLDivElement;
+      const playIndicator = artPlayerInstanceRef.current?.template?.$state?.querySelector('.video-play-indicator') as HTMLDivElement;
+      
+      if (loadingIndicator) loadingIndicator.style.display = "none";
+      if (playIndicator) playIndicator.style.display = "none";
+    });
+
+    // Add initial loading state
+    artPlayerInstanceRef.current.on("video:loadstart", () => {
+      const loadingIndicator = artPlayerInstanceRef.current?.template?.$loading?.querySelector('.video-loading-indicator') as HTMLDivElement;
+      const playIndicator = artPlayerInstanceRef.current?.template?.$state?.querySelector('.video-play-indicator') as HTMLDivElement;
+      
+      if (loadingIndicator) loadingIndicator.style.display = "block";
+      if (playIndicator) playIndicator.style.display = "none";
     });
   };
 
