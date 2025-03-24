@@ -33,9 +33,9 @@ export const createCenterApi = createApi({
   }),
   endpoints: (builder) => ({
     getTopCreator: builder.query({
-      query: ({ tag, page }) =>
+      query: ({ tag, page, type }) =>
         convertToSecureUrl(
-          `/top/creator/dashboard?ranking=${tag}&page=${page}`
+          `/top/creator/dashboard?ranking=${tag}&page=${page}&type=${type}`
         ),
     }),
     getMyPostStatusCount: builder.query({
@@ -127,10 +127,14 @@ export const createCenterApi = createApi({
     getAds: builder.query({
       query: () => convertToSecureUrl(`/app/ads`),
     }),
+    getAvatarList: builder.query({
+      query: () => convertToSecureUrl(`/avatar/list`),
+    }),
   }),
 });
 
 export const {
+  useGetAvatarListQuery,
   useGetAdsQuery,
   useGetS3Query,
   useGetConfigQuery,
