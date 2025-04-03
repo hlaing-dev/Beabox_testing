@@ -26,7 +26,70 @@ const generateUUID = (): string => {
 };
 
 /**
+ * Get or create a persistent UUID for this device/browser using IndexedDB
+ * Returns a promise that resolves to the UUID
+ */
+const getPersistentUUIDFromIndexedDB = async (): Promise<string> => {
+  const storageKey = 'app_device_uuid';
+  
+  return new Promise<string>((resolve) => {
+    // Try to get UUID from IndexedDB
+    const request = indexedDB.open('AppDatabase', 1);
+    
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains('deviceInfo')) {
+        db.createObjectStore('deviceInfo');
+      }
+    };
+    
+    request.onsuccess = () => {
+      const db = request.result;
+      const transaction = db.transaction('deviceInfo', 'readwrite');
+      const store = transaction.objectStore('deviceInfo');
+      
+      const getRequest = store.get(storageKey);
+      
+      getRequest.onsuccess = () => {
+        let uuid: string | null = getRequest.result;
+        
+        if (!uuid) {
+          uuid = generateUUID();
+          store.put(uuid, storageKey);
+        }
+        
+        resolve(uuid);
+      };
+      
+      getRequest.onerror = () => {
+        console.warn('Could not retrieve UUID from IndexedDB');
+        const uuid = generateUUID();
+        resolve(uuid);
+      };
+    };
+    
+    request.onerror = () => {
+      console.warn('Could not open IndexedDB, falling back to localStorage');
+      // Fallback to localStorage
+      let uuid = localStorage.getItem(storageKey);
+      
+      if (!uuid) {
+        uuid = generateUUID();
+        try {
+          localStorage.setItem(storageKey, uuid);
+        } catch {
+          console.warn('Could not store UUID in localStorage');
+        }
+      }
+      
+      resolve(uuid);
+    };
+  });
+};
+
+/**
  * Get or create a persistent UUID for this device/browser
+ * Maintains backward compatibility with synchronous API
  */
 const getPersistentUUID = (): string => {
   const storageKey = 'app_device_uuid';
@@ -40,6 +103,15 @@ const getPersistentUUID = (): string => {
       console.warn('Could not store UUID in localStorage');
     }
   }
+  
+  // Initialize IndexedDB storage in the background
+  void getPersistentUUIDFromIndexedDB().then((persistentId: string) => {
+    if (persistentId !== uuid) {
+      setDeviceInfo({ uuid: persistentId });
+    }
+  }).catch((err: Error) => {
+    console.warn('IndexedDB error:', err);
+  });
   
   return uuid;
 };
