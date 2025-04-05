@@ -25,19 +25,22 @@ import VideoFeed from "@/page/home/components/VideoFeed";
 // } from "react-device-detect";
 
 export function isWebView() {
-  const ua = navigator.userAgent || "";
-  const standalone = window.navigator.standalone;
+  return (window as any).webkit &&
+  (window as any).webkit.messageHandlers &&
+  (window as any).webkit.messageHandlers.jsBridge;
+  // const ua = navigator.userAgent || "";
+  // const standalone = window.navigator.standalone;
 
-  const isIOS = /iPhone|iPad|iPod/.test(ua);
-  const isAndroid = /Android/.test(ua);
+  // const isIOS = /iPhone|iPad|iPod/.test(ua);
+  // const isAndroid = /Android/.test(ua);
 
-  const isIOSWebView =
-    isIOS && (!ua.includes("Safari") || standalone === false);
-  const isAndroidWebView = isAndroid && ua.includes("wv");
+  // const isIOSWebView =
+  //   isIOS && (!ua.includes("Safari") || standalone === false);
+  // const isAndroidWebView = isAndroid && ua.includes("wv");
 
-  const isCustomFlag = window.IS_APP === true; // if injected from native
+  // const isCustomFlag = window.IS_APP === true; // if injected from native
 
-  return isIOSWebView || isAndroidWebView || isCustomFlag;
+  // return isIOSWebView || isAndroidWebView || isCustomFlag;
 }
 
 const SearchVideo = ({ id }: { id: string }) => {
@@ -107,9 +110,8 @@ const SearchVideo = ({ id }: { id: string }) => {
   // }, []);
   useEffect(() => {
     // setVh(isMobile ? "95vh" : "100vh");
-    setVh(isWebView() ? "100vh" : "95vh");
+    setVh(isWebView() ? "100vh" : "100dvh");
   }, []);
-
 
   return (
     <div className={`${showVideoFeed ? "z-[9900] relative h-screen" : ""}`}>
@@ -131,7 +133,10 @@ const SearchVideo = ({ id }: { id: string }) => {
             />
           </div>
         ) : (
-          <DrawerContent className={`z-[8900] h-[${vh}] border-0 `}>
+          <DrawerContent
+            className={`z-[8900] border-0 `}
+            style={{ height: vh }}
+          >
             <>
               <div className="c-height w-full overflow-y-scroll hide-sb">
                 <div className=" px-5 z-[8000]  bg-[#16131C] sticky top-0 py-5 flex items-center gap-3">
