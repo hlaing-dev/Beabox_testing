@@ -98,6 +98,107 @@ const UploadVideos = ({ editPost, seteditPost, refetch }: any) => {
     decryptThumbnail();
   }, [editPost, domain]);
 
+  // Add this function to capture first frame from video URL
+  const captureFirstFrameFromUrl = (videoUrl: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      video.crossOrigin = "anonymous";
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = "metadata";
+      
+      // Handle loading
+      video.onloadedmetadata = () => {
+        video.currentTime = 0.1; // Go slightly past first frame for better results
+      };
+      
+      video.onloadeddata = () => {
+        try {
+          // Create canvas and draw video frame
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth || 320;
+          canvas.height = video.videoHeight || 240;
+          
+          const ctx = canvas.getContext('2d', { alpha: false });
+          if (ctx) {
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Get data URL from canvas
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+            resolve(dataUrl);
+          } else {
+            reject(new Error("Could not get canvas context"));
+          }
+        } catch (error) {
+          reject(error);
+        } finally {
+          // Clean up
+          video.src = "";
+          video.load();
+        }
+      };
+      
+      // Handle errors
+      video.onerror = () => {
+        reject(new Error("Error loading video"));
+      };
+      
+      // Set source and start loading
+      video.src = videoUrl;
+      
+      // Set timeout in case video never loads
+      setTimeout(() => {
+        if (!video.videoWidth) {
+          reject(new Error("Video loading timeout"));
+        }
+      }, 5000);
+    });
+  };
+
+  // In useEffect, add this for edit mode
+  useEffect(() => {
+    // For edited videos, always capture the first frame as poster for better cross-browser compatibility
+    if (editPost?.files[0]?.resourceURL) {
+      const videoUrl = `${domain}/${editPost.files[0].resourceURL}`;
+      
+      // More reliable browser detection
+      const userAgent = navigator.userAgent;
+      const vendor = navigator.vendor || "";
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const isSafari = /Safari/.test(userAgent) && /Apple Computer/.test(vendor);
+      const isChrome = /Chrome/.test(userAgent) && /Google Inc/.test(vendor);
+      
+      console.log({isMac, isSafari, isChrome, userAgent, vendor}, "Browser detection");
+      
+      // Only Safari needs special handling
+      if (isSafari && !isChrome) {
+        captureFirstFrameFromUrl(videoUrl)
+          .then(posterUrl => {
+            // Update files state with poster
+            setFiles((prevFiles: any) => [{
+              ...prevFiles[0],
+              poster: posterUrl, // Store poster URL directly (not a File object in this case)
+              isSafariPoster: true
+            }]);
+          })
+          .catch(error => {
+            console.error("Failed to generate poster:", error);
+            // Fall back to default thumbnail
+            createDefaultThumbnail()
+              .then(file => {
+                setFiles((prevFiles: any) => [{
+                  ...prevFiles[0],
+                  poster: URL.createObjectURL(file),
+                  isSafariPoster: true
+                }]);
+              });
+          });
+      }
+    }
+  }, [editPost, domain]);
+
   // Handle video file drop
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const videoFile = acceptedFiles.find((file) =>
@@ -562,33 +663,64 @@ const UploadVideos = ({ editPost, seteditPost, refetch }: any) => {
           });
         });
       };
-      let thumbnailUrl;
-      let videoUrl;
-      let thumbnailKey;
-      let videoKey;
+      
+      let thumbnailUrl: string;
+      let videoUrl: string;
+      let thumbnailKey: string;
+      let videoKey: string;
       const videoFile = files[0].video;
 
       if (!files[0].resourceURL) {
-        // Upload video file
-
+        // Upload video file first
         videoKey = `video_${Date.now()}_${Math.random()
           .toString(36)
           .substr(2, 9)}.${videoFile.name.split(".").pop()}`;
         await uploadFileToS3(videoFile, videoKey, videoFile.type);
         videoUrl = `${directory}/${videoKey}`;
+        
+        // Now that video is complete, move on to thumbnail without showing progress
+        if (typeof thumbnail !== "string") {
+          // Upload thumbnail file silently (no progress update)
+          thumbnailKey = `thumbnail_${Date.now()}_${Math.random()
+            .toString(36)
+            .substr(2, 9)}.${thumbnail.name.split(".").pop()}`;
+            
+          // Use a simpler upload method for thumbnail without progress tracking
+          const uploadThumbnail = () => {
+            const uploadParams = {
+              Bucket: bucket,
+              Key: `${directory}/${thumbnailKey}`,
+              Body: thumbnail,
+              ContentType: thumbnail.type,
+              ContentDisposition: "inline",
+            };
+            
+            return new Promise((resolve, reject) => {
+              s3.upload(uploadParams).send((err, data) => {
+                if (err) reject(err);
+                else resolve(data);
+              });
+            });
+          };
+          
+          await uploadThumbnail();
+          thumbnailUrl = `${directory}/${thumbnailKey}`;
+        } else {
+          thumbnailUrl = thumbnail;
+        }
       } else {
         videoUrl = files[0].resourceURL;
-      }
-
-      if (typeof thumbnail !== "string") {
-        // Upload thumbnail file
-        thumbnailKey = `thumbnail_${Date.now()}_${Math.random()
-          .toString(36)
-          .substr(2, 9)}.${thumbnail.name.split(".").pop()}`;
-        await uploadFileToS3(thumbnail, thumbnailKey, thumbnail.type);
-        thumbnailUrl = `${directory}/${thumbnailKey}`;
-      } else {
-        thumbnailUrl = thumbnail;
+        
+        if (typeof thumbnail !== "string") {
+          // Upload thumbnail file
+          thumbnailKey = `thumbnail_${Date.now()}_${Math.random()
+            .toString(36)
+            .substr(2, 9)}.${thumbnail.name.split(".").pop()}`;
+          await uploadFileToS3(thumbnail, thumbnailKey, thumbnail.type);
+          thumbnailUrl = `${directory}/${thumbnailKey}`;
+        } else {
+          thumbnailUrl = thumbnail;
+        }
       }
 
       // Construct the public URLs for the uploaded files
@@ -777,11 +909,12 @@ const UploadVideos = ({ editPost, seteditPost, refetch }: any) => {
                       ? `${domain}/${videoUrlRef.current}`
                       : videoUrlRef.current
                   }
-                  poster={files[0]?.poster ? URL.createObjectURL(files[0].poster) : ""}
+                  poster={files[0]?.isSafariPoster ? files[0].poster : (files[0]?.poster ? URL.createObjectURL(files[0].poster) : "")}
                   className="preview-video"
                   playsInline
                   muted
                   preload="metadata"
+                  crossOrigin="anonymous"
                   controls={false}
                   style={{ 
                     objectFit: "cover", 
@@ -794,16 +927,19 @@ const UploadVideos = ({ editPost, seteditPost, refetch }: any) => {
                   }}
                   onError={(e) => {
                     console.error("Error loading video preview");
-                    // If video fails to load on iOS, we'll rely on the poster image
+                    // If video fails to load, we'll rely on the poster image
                     const target = e.target as HTMLVideoElement;
                     target.onerror = null; // Prevent infinite error loop
-                    // Make sure poster is visible even when video fails
                     target.style.backgroundColor = "#000";
                     target.controls = false;
                     
-                    // Use only the video's poster, not the cover photo
+                    // Use appropriate poster based on browser
                     if (files[0]?.poster) {
-                      target.poster = URL.createObjectURL(files[0].poster);
+                      if (files[0]?.isSafariPoster) {
+                        target.poster = files[0].poster;
+                      } else {
+                        target.poster = URL.createObjectURL(files[0].poster);
+                      }
                     } else {
                       createDefaultThumbnail()
                         .then(file => {
@@ -993,3 +1129,4 @@ const UploadVideos = ({ editPost, seteditPost, refetch }: any) => {
 };
 
 export default UploadVideos;
+
