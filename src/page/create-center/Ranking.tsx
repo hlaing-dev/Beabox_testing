@@ -44,9 +44,12 @@ const Ranking = () => {
     }
   );
 
+  const code = userData?.data?.user_code ? userData?.data?.user_code : ""
+
+
   const { data: shareData } = useGetUserShareQuery({
     type: "ranking",
-    id: userData?.user_code,
+    id: code,
     qr_code: 0,
   });
   // useEffect(() => {
